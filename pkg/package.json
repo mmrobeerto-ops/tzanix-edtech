@@ -1,0 +1,15 @@
+{
+  "name": "tzanix_quantum_engine",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "tzanix_quantum_engine_bg.wasm",
+    "tzanix_quantum_engine.js",
+    "tzanix_quantum_engine.d.ts"
+  ],
+  "main": "tzanix_quantum_engine.js",
+  "types": "tzanix_quantum_engine.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
