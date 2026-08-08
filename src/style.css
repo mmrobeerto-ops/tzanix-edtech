@@ -269,3 +269,32 @@ body {
     bottom: 4rem !important;
   }
 }
+.btn-play {
+  margin-top: 1.5rem;
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), #00b3cc);
+  color: #000;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px var(--accent-glow);
+  transition: all 0.3s ease;
+}
+
+.btn-play:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.7);
+}
+
+.btn-play.running {
+  background: linear-gradient(135deg, #ff4d4d, #cc0000);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4);
+}
+.btn-play.running:hover {
+  box-shadow: 0 6px 20px rgba(255, 77, 77, 0.6);
+}

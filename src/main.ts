@@ -143,6 +143,7 @@ async function bootstrap() {
     const metricFreq = document.getElementById('metric-freq')!;
     const metricRes = document.getElementById('metric-res')!;
     const metricCap = document.getElementById('metric-cap')!;
+    const btnStartSim = document.getElementById('btn-start-sim')!;
     
     // Parallax state
     let targetCameraX = 0;
@@ -181,12 +182,39 @@ async function bootstrap() {
         config.presetEdTech();
     });
 
-    // Init first wave (default to EdTech for demo purposes)
-    config.presetEdTech();
-    setActiveBtn(btnEdtech);
+    // Init first wave (default to Free Mode for demo purposes)
+    config.mode = 'physics';
+    applyWaves();
+
+    let edTechTime = 0;
+    let edTechStage = 0;
+    let isSimRunning = false;
+
+    btnStartSim.addEventListener('click', () => {
+        if (!isSimRunning) {
+            isSimRunning = true;
+            edTechTime = 0;
+            edTechStage = 0;
+            btnStartSim.innerText = "⏹ Detener Simulación";
+            btnStartSim.classList.add('running');
+            setActiveBtn(btnEdtech);
+            config.presetEdTech(); // sets mode to edtech
+        } else {
+            isSimRunning = false;
+            btnStartSim.innerText = "▶ Iniciar Simulación Educativa";
+            btnStartSim.classList.remove('running');
+            infoTitle.innerText = "Modo Libre";
+            infoDesc.innerText = "Simulación detenida. Ajusta los parámetros libremente.";
+        }
+    });
+
+    let lastTime = performance.now();
 
     // Render loop
-    function animate() {
+    function animate(time: number) {
+        const deltaTime = (time - lastTime) / 1000;
+        lastTime = time;
+
         requestAnimationFrame(animate);
         
         // Camera parallax
@@ -197,44 +225,54 @@ async function bootstrap() {
         // Cyber mode removed
 
         // EdTech mode dynamic updating
-        if (config.mode === 'edtech') {
-            edTechTime += 0.02;
+        if (config.mode === 'edtech' && isSimRunning) {
+            edTechTime += deltaTime;
             
-            // Stage 1
-            if (edTechStage === 1) {
-                infoTitle.innerText = "Acto 1: Nube de Probabilidad";
-                infoDesc.innerText = "La partícula cuántica no tiene posición. Es una onda de probabilidad.";
+            // Stage 1: Probability Cloud (0s to 30s)
+            if (edTechTime < 30.0) {
+                if (edTechStage !== 1) {
+                    edTechStage = 1;
+                    infoTitle.innerText = "Fase 1: Nube de Probabilidad";
+                    infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda (Superposición).";
+                    config.capacity = 100;
+                    config.resolution = 0.01;
+                    config.frequency = 1.5;
+                    config.phase2 = 0.0;
+                    applyWaves();
+                }
             }
-
-            // Stage 2: Measurement (Collapse) at 4 seconds
-            if (edTechStage === 1 && edTechTime > 4.0) {
-                edTechStage = 2;
-                config.capacity = 4500;
-                config.resolution = 0.15;
-                infoTitle.innerText = "Acto 2: Colapso por Medición";
-                infoDesc.innerText = "El acto consciente de medir obligó a la naturaleza a definir una posición.";
+            // Stage 2: Measurement/Collapse (30s to 60s)
+            else if (edTechTime < 60.0) {
+                if (edTechStage !== 2) {
+                    edTechStage = 2;
+                    infoTitle.innerText = "Fase 2: Colapso por Medición";
+                    infoDesc.innerText = "Al observar e interactuar (capacidad al 100%), la onda colapsa y define una posición.";
+                    config.capacity = 4500;
+                    config.resolution = 0.15;
+                }
+            }
+            // Stage 3: Uncertainty/Heisenberg (60s to 90s)
+            else if (edTechTime < 90.0) {
+                if (edTechStage !== 3) {
+                    edTechStage = 3;
+                    infoTitle.innerText = "Fase 3: Incertidumbre (Heisenberg)";
+                    infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento. La precisión se disipa (Entropía).";
+                    config.frequency = 3.5;
+                    config.phase2 = Math.PI; // Inject turbulence
+                    applyWaves();
+                }
+            }
+            // Reset at 90 seconds
+            else {
+                isSimRunning = false;
+                btnStartSim.innerText = "↻ Reiniciar Simulación";
+                btnStartSim.classList.remove('running');
+                infoTitle.innerText = "Simulación Completada";
+                infoDesc.innerText = "Has presenciado el efecto observador en un sistema cuántico simulado.";
             }
             
-            // Stage 3: Uncertainty (Heisenberg) at 8 seconds
-            if (edTechStage === 2 && edTechTime > 8.0) {
-                edTechStage = 3;
-                config.frequency = 3.5;
-                config.phase2 = Math.PI; // Inject turbulence
-                applyWaves();
-                infoTitle.innerText = "Acto 3: Incertidumbre de Heisenberg";
-                infoDesc.innerText = "Intentar fijar el momento exacto inyectó entropía, disipando la partícula.";
-            }
-            
-            // Reset at 14 seconds
-            if (edTechStage === 3 && edTechTime > 14.0) {
-                edTechStage = 1;
-                edTechTime = 0;
-                config.capacity = 100;
-                config.resolution = 0.01;
-                config.frequency = 1.5;
-                config.phase2 = 0.0;
-                applyWaves();
-            }
+            // Sync values to GUI if they changed
+            gui.controllersRecursive().forEach(c => c.updateDisplay());
         }
 
         // Update UI Metrics
@@ -294,7 +332,7 @@ async function bootstrap() {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 bootstrap().catch(console.error);
