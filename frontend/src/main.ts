@@ -2,7 +2,59 @@ import './style.css';
 import * as THREE from 'three';
 import { GUI } from 'lil-gui';
 import init, { QuantumEngineWasm } from 'tzanix_quantum_engine';
-import { generateCyberData, ipToFrequencies } from './mockData';
+import { ipToFrequencies } from './mockData';
+
+// Estado global para datos en vivo desde el WebSocket
+interface LiveServer {
+    ip: string;
+    magnitude: number;
+    entropy: number;
+    lastSeen: number;
+    blocked: boolean;
+}
+const liveServers = new Map<string, LiveServer>();
+
+function connectQGuardWebSocket() {
+    const ws = new WebSocket('ws://127.0.0.1:8081');
+    ws.onopen = () => console.log('📡 Conectado al TZANiX Q-Guard Telemetry');
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            const now = performance.now();
+            
+            if (data.type === 'TELEMETRY') {
+                const ip = data.x_vector;
+                const existing = liveServers.get(ip);
+                if (!existing?.blocked) {
+                    liveServers.set(ip, {
+                        ip,
+                        magnitude: data.y_magnitude,
+                        entropy: data.z_entropy,
+                        lastSeen: now,
+                        blocked: false
+                    });
+                }
+            } else if (data.type === 'KILL_SWITCH') {
+                const ip = data.x_vector;
+                liveServers.set(ip, {
+                    ip,
+                    magnitude: data.y_magnitude,
+                    entropy: 0,
+                    lastSeen: now,
+                    blocked: true
+                });
+                console.warn(`🛑 KILL-SWITCH ACTIVADO: ${ip}`);
+            }
+        } catch (e) {
+            console.error('Error parseando WebSocket:', e);
+        }
+    };
+    ws.onclose = () => {
+        console.warn('WebSocket desconectado. Reconectando en 2s...');
+        setTimeout(connectQGuardWebSocket, 2000);
+    };
+}
+connectQGuardWebSocket();
 
 async function bootstrap() {
     await init();
@@ -51,11 +103,12 @@ async function bootstrap() {
                 vec3 normalColor = mix(vec3(0.0, 0.4, 0.9), vec3(0.2, 1.0, 1.0), vIntensity);
                 vec3 anomalyColor = vec3(1.0, 0.1, 0.1);
                 
-                float anomalyFactor = smoothstep(0.5, 0.1, vIntensity);
-                vec3 color = mix(normalColor, anomalyColor, anomalyFactor * 0.8); 
+                // Si la intensidad es muy alta (Kill-Switch), saturar en rojo
+                float anomalyFactor = smoothstep(0.3, 0.6, vIntensity);
+                vec3 color = mix(normalColor, anomalyColor, anomalyFactor); 
                 
                 // Extremely low alpha
-                float alpha = (0.01 + vIntensity * 0.05) * softEdge;
+                float alpha = (0.02 + vIntensity * 0.1) * softEdge;
                 
                 gl_FragColor = vec4(color, alpha);
             }
@@ -183,22 +236,29 @@ async function bootstrap() {
     function animate() {
         requestAnimationFrame(animate);
         
-        // Cyber mode dynamic updating
+        // Cyber mode dynamic updating (Live Telemetry)
         if (config.mode === 'cyber') {
-            cyberTime += 0.02; // Advance time
-            if (cyberTime > 30) cyberTime = 0; // Loop the scenario
-            
-            const cyberData = generateCyberData(cyberTime);
             engine.clear_waves();
+            const now = performance.now();
             
-            for (const server of cyberData) {
-                const freqs = ipToFrequencies(server.ip);
-                // Packets per sec dictates Amplitude
-                const amplitude = server.packets_sec / 5000.0;
-                // Coherence dictates Phase (0.0 to 1.0 -> Phase 0 to PI)
-                const phase = (1.0 - server.estado_coherencia) * Math.PI;
+            for (const [ip, server] of liveServers.entries()) {
+                // Limpiar nodos inactivos después de 2 segundos (si no están bloqueados)
+                if (!server.blocked && now - server.lastSeen > 2000) {
+                    liveServers.delete(ip);
+                    continue;
+                }
                 
-                engine.add_wave(freqs.fx, freqs.fy, freqs.fz, amplitude, phase);
+                const freqs = ipToFrequencies(server.ip);
+                
+                if (server.blocked) {
+                    // Kill-Switch activo: Explosión roja masiva (Alta amplitud, fase disruptiva)
+                    engine.add_wave(freqs.fx, freqs.fy, freqs.fz, 2.0, Math.PI);
+                } else {
+                    // Telemetría normal
+                    const amplitude = Math.min(server.magnitude / 4096.0, 1.0); // 4KB = 1.0 amplitud
+                    const phase = server.entropy * Math.PI; // Entropía mapeada a fase
+                    engine.add_wave(freqs.fx, freqs.fy, freqs.fz, amplitude, phase);
+                }
             }
         }
 
