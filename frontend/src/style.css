@@ -4,8 +4,8 @@
   --bg: #05050f;
   --glass-bg: rgba(10, 10, 20, 0.4);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --accent: #aa3bff;
-  --accent-glow: rgba(170, 59, 255, 0.5);
+  --accent: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.5);
   --sans: 'Inter', system-ui, sans-serif;
 }
 

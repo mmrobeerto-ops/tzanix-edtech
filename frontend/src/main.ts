@@ -71,7 +71,7 @@ async function bootstrap() {
     // 2. Graph Setup (The Emergent Geometry)
     const lineGeometry = new THREE.BufferGeometry();
     const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xff00aa,
+        color: 0x00e5ff,
         transparent: true,
         opacity: 0.4,
         blending: THREE.AdditiveBlending,
@@ -111,28 +111,7 @@ async function bootstrap() {
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         },
-        presetGravityNetwork: () => {
-            config.mode = 'physics';
-            config.capacity = 4000;
-            config.resolution = 0.03;
-            config.frequency = 1.2;
-            config.phase1 = 0.0;
-            config.phase2 = Math.PI / 2;
-            gui.controllersRecursive().forEach(c => c.updateDisplay());
-            
-            engine.clear_waves();
-            engine.add_wave(1.2, 1.2, 1.2, 1.0, 0.0);
-            engine.add_wave(1.4, 0.8, 1.1, 0.8, Math.PI / 3);
-            engine.add_wave(0.8, 1.5, 0.9, 0.6, Math.PI / 2);
-        },
-        presetCybersecurity: () => {
-            config.mode = 'cyber';
-            config.capacity = 5000;
-            config.resolution = 0.02; // Fine resolution to map all IPs
-            config.rotationSpeed = 0.001; // Slower rotation
-            gui.controllersRecursive().forEach(c => c.updateDisplay());
-            // Time is handled in animate loop for cyber mode
-        },
+        // Cyber and Gravity removed for EdTech specific build
         presetEdTech: () => {
             config.mode = 'edtech';
             // Stage 1: Probability Cloud (Unmeasured)
@@ -185,34 +164,20 @@ async function bootstrap() {
     const presetFolder = gui.addFolder('Presets (Entities)');
     presetFolder.add(config, 'presetStableParticle').name('Stable Particle');
     presetFolder.add(config, 'presetVacuum').name('Quantum Vacuum');
-    presetFolder.add(config, 'presetGravityNetwork').name('Gravity Network');
-    presetFolder.add(config, 'presetCybersecurity').name('Cybersecurity Demo');
     presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
     // UI Buttons Binding
-    const btnCyber = document.getElementById('btn-cyber')!;
     const btnEdtech = document.getElementById('btn-edtech')!;
-    const btnGravity = document.getElementById('btn-gravity')!;
     const btnToggleGui = document.getElementById('btn-toggle-gui')!;
 
     function setActiveBtn(active: HTMLElement) {
-        [btnCyber, btnEdtech, btnGravity].forEach(b => b.classList.remove('active'));
+        btnEdtech.classList.remove('active');
         active.classList.add('active');
     }
 
-    btnCyber.addEventListener('click', () => {
-        setActiveBtn(btnCyber);
-        config.presetCybersecurity();
-    });
     btnEdtech.addEventListener('click', () => {
         setActiveBtn(btnEdtech);
         config.presetEdTech();
-    });
-    btnGravity.addEventListener('click', () => {
-        setActiveBtn(btnGravity);
-        config.presetGravityNetwork();
-        infoTitle.innerText = "Red de Gravedad";
-        infoDesc.innerText = "Topología curva generada por la interferencia de 3 ondas.";
     });
     
     btnToggleGui.addEventListener('click', () => {
@@ -237,27 +202,7 @@ async function bootstrap() {
         camera.position.y += (targetCameraY - camera.position.y) * 0.05;
         camera.lookAt(0, 0, 0);
 
-        // Cyber mode dynamic updating
-        if (config.mode === 'cyber') {
-            cyberTime += 0.02; // Advance time
-            if (cyberTime > 30) cyberTime = 0; // Loop the scenario
-            
-            infoTitle.innerText = "Monitor DDoS";
-            infoDesc.innerText = "Tráfico: " + Math.floor(cyberTime * 100) + " pkt/s | Alerta Fase: Roja";
-
-            const cyberData = generateCyberData(cyberTime);
-            engine.clear_waves();
-            
-            for (const server of cyberData) {
-                const freqs = ipToFrequencies(server.ip);
-                // Packets per sec dictates Amplitude
-                const amplitude = server.packets_sec / 5000.0;
-                // Coherence dictates Phase (0.0 to 1.0 -> Phase 0 to PI)
-                const phase = (1.0 - server.estado_coherencia) * Math.PI;
-                
-                engine.add_wave(freqs.fx, freqs.fy, freqs.fz, amplitude, phase);
-            }
-        }
+        // Cyber mode removed
 
         // EdTech mode dynamic updating
         if (config.mode === 'edtech') {
