@@ -61,6 +61,8 @@ body {
   margin: 1rem;
   border-radius: 12px;
   pointer-events: auto;
+  flex-wrap: wrap; /* allow wrapping on mobile */
+  gap: 1rem;
 }
 
 .logo h1 {
@@ -109,24 +111,26 @@ body {
   position: absolute;
   bottom: 2rem;
   left: 2rem;
-  width: 400px;
-  padding: 2rem;
+  width: 320px; /* made smaller */
+  max-width: calc(100vw - 4rem); /* prevent overflowing on small screens */
+  padding: 1.5rem; /* smaller padding */
   border-radius: 16px;
   pointer-events: auto;
+  transition: all 0.3s ease;
 }
 
 .info-panel h2 {
   margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem; /* smaller font */
   font-weight: 700;
   color: #fff;
 }
 
 .info-panel p {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1rem 0; /* less margin */
   color: var(--text-muted);
-  line-height: 1.5;
-  font-size: 0.95rem;
+  line-height: 1.4;
+  font-size: 0.85rem; /* smaller font */
 }
 
 .metrics {
@@ -191,4 +195,45 @@ body {
 }
 .lil-gui.root.visible {
   display: block;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0.75rem 1rem;
+    margin: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .controls {
+    width: 100%;
+  }
+
+  .controls button {
+    width: 100%; /* full width button on mobile */
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+
+  .info-panel {
+    bottom: 5rem; /* push above bottom bar on mobile */
+    left: 0.5rem;
+    width: calc(100vw - 4rem);
+    padding: 1rem;
+    background: rgba(10, 10, 20, 0.7); /* slightly darker for readability on mobile */
+  }
+
+  .bottom-bar {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .glass-btn {
+    width: 100%;
+    padding: 0.5rem;
+  }
 }
