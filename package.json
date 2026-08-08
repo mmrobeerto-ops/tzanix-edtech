@@ -16,6 +16,6 @@
     "@types/three": "^0.185.4",
     "lil-gui": "^0.21.0",
     "three": "^0.185.1",
-    "tzanix_quantum_engine": "file:../pkg"
+    "tzanix_quantum_engine": "file:./pkg"
   }
 }

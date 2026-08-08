@@ -4,7 +4,7 @@ import { GUI } from 'lil-gui';
 import init, { QuantumEngineWasm } from 'tzanix_quantum_engine';
 import { ipToFrequencies } from './mockData';
 
-// Estado global para datos en vivo desde el WebSocket
+// Estado global para datos en vivo desde el WebSocket (TZANiX Q-Balam)
 interface LiveServer {
     ip: string;
     magnitude: number;
@@ -16,7 +16,7 @@ const liveServers = new Map<string, LiveServer>();
 
 function connectQGuardWebSocket() {
     const ws = new WebSocket('ws://127.0.0.1:8081');
-    ws.onopen = () => console.log('📡 Conectado al TZANiX Q-Guard Telemetry');
+    ws.onopen = () => console.log('📡 Conectado al TZANiX Q-Balam Telemetry');
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
@@ -88,7 +88,6 @@ async function bootstrap() {
             void main() {
                 vIntensity = intensity;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                // Drastically reduce size to make individual nodes visible instead of a giant blob
                 gl_PointSize = (0.5 + vIntensity) * (15.0 / -mvPosition.z);
                 gl_Position = projectionMatrix * mvPosition;
             }
@@ -107,7 +106,6 @@ async function bootstrap() {
                 float anomalyFactor = smoothstep(0.3, 0.6, vIntensity);
                 vec3 color = mix(normalColor, anomalyColor, anomalyFactor); 
                 
-                // Extremely low alpha
                 float alpha = (0.02 + vIntensity * 0.1) * softEdge;
                 
                 gl_FragColor = vec4(color, alpha);
@@ -124,7 +122,7 @@ async function bootstrap() {
     // 2. Graph Setup (The Emergent Geometry)
     const lineGeometry = new THREE.BufferGeometry();
     const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xff00aa,
+        color: 0x00e5ff,
         transparent: true,
         opacity: 0.4,
         blending: THREE.AdditiveBlending,
@@ -134,7 +132,7 @@ async function bootstrap() {
     universeGroup.add(lineSystem);
 
     // UI Configuration
-    const gui = new GUI({ title: 'Tzanix Quantum Engine' });
+    const gui = new GUI({ title: 'Tzanix Q-Balam' });
     const config = {
         capacity: 2000,
         resolution: 0.05,
@@ -142,7 +140,7 @@ async function bootstrap() {
         phase2: Math.PI / 4,
         frequency: 1.0,
         rotationSpeed: 0.005,
-        mode: 'physics', // 'physics' or 'cyber'
+        mode: 'cyber', // Default to cyber mode to receive Q-Balam data
         // Presets
         presetStableParticle: () => {
             config.mode = 'physics';
@@ -164,39 +162,24 @@ async function bootstrap() {
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         },
-        presetGravityNetwork: () => {
-            config.mode = 'physics';
-            config.capacity = 4000;
-            config.resolution = 0.03;
-            config.frequency = 1.2;
-            config.phase1 = 0.0;
-            config.phase2 = Math.PI / 2;
-            gui.controllersRecursive().forEach(c => c.updateDisplay());
-            
-            engine.clear_waves();
-            engine.add_wave(1.2, 1.2, 1.2, 1.0, 0.0);
-            engine.add_wave(1.4, 0.8, 1.1, 0.8, Math.PI / 3);
-            engine.add_wave(0.8, 1.5, 0.9, 0.6, Math.PI / 2);
-        },
         presetCybersecurity: () => {
             config.mode = 'cyber';
             config.capacity = 5000;
-            config.resolution = 0.02; // Fine resolution to map all IPs
-            config.rotationSpeed = 0.001; // Slower rotation
+            config.resolution = 0.02;
+            config.rotationSpeed = 0.001;
             gui.controllersRecursive().forEach(c => c.updateDisplay());
-            // Time is handled in animate loop for cyber mode
         },
         presetEdTech: () => {
             config.mode = 'edtech';
-            // Stage 1: Probability Cloud (Unmeasured)
             config.capacity = 100;
             config.resolution = 0.01;
             config.frequency = 1.5;
             config.phase1 = 0.0;
             config.phase2 = 0.0;
             config.rotationSpeed = 0.005;
-            edTechStage = 1;
+            isSimRunning = true;
             edTechTime = 0;
+            edTechStage = 0;
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         }
@@ -208,6 +191,24 @@ async function bootstrap() {
         engine.add_wave(config.frequency, config.frequency, config.frequency, 1.0, config.phase1);
         engine.add_wave(config.frequency * 1.2, config.frequency * 0.8, config.frequency * 1.1, 0.8, config.phase2);
     }
+
+    // DOM references (safely handled if they don't exist)
+    const infoTitle = document.getElementById('info-title');
+    const infoDesc = document.getElementById('info-desc');
+    const metricFreq = document.getElementById('metric-freq');
+    const metricRes = document.getElementById('metric-res');
+    const metricCap = document.getElementById('metric-cap');
+    const btnStartSim = document.getElementById('btn-start-sim');
+    
+    // Parallax state
+    let targetCameraX = 0;
+    let targetCameraY = 2;
+    document.addEventListener('mousemove', (e) => {
+        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        targetCameraX = mouseX * 2.0;
+        targetCameraY = 2.0 + mouseY * 1.5;
+    });
 
     const simFolder = gui.addFolder('Observer Filter');
     simFolder.add(config, 'capacity', 100, 10000, 100).listen();
@@ -221,28 +222,56 @@ async function bootstrap() {
     const presetFolder = gui.addFolder('Presets (Entities)');
     presetFolder.add(config, 'presetStableParticle').name('Stable Particle');
     presetFolder.add(config, 'presetVacuum').name('Quantum Vacuum');
-    presetFolder.add(config, 'presetGravityNetwork').name('Gravity Network');
-    presetFolder.add(config, 'presetCybersecurity').name('Cybersecurity Demo');
+    presetFolder.add(config, 'presetCybersecurity').name('Cybersecurity Live');
     presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
-    // Init first wave
+    // Init state
     applyWaves();
 
-    let cyberTime = 0;
     let edTechTime = 0;
-    let edTechStage = 1;
+    let edTechStage = 0;
+    let isSimRunning = false;
+
+    if (btnStartSim) {
+        btnStartSim.addEventListener('click', () => {
+            if (!isSimRunning) {
+                isSimRunning = true;
+                edTechTime = 0;
+                edTechStage = 0;
+                btnStartSim.innerText = "⏹ Detener Simulación";
+                btnStartSim.classList.add('running');
+                config.presetEdTech();
+            } else {
+                isSimRunning = false;
+                btnStartSim.innerText = "▶ Iniciar Simulación Educativa";
+                btnStartSim.classList.remove('running');
+                if (infoTitle) infoTitle.innerText = "Modo Libre";
+                if (infoDesc) infoDesc.innerText = "Simulación detenida. Ajusta los parámetros libremente.";
+            }
+        });
+    }
+
+    let lastTime = performance.now();
 
     // Render loop
-    function animate() {
+    function animate(time: number) {
+        const deltaTime = (time - lastTime) / 1000;
+        lastTime = time;
+
         requestAnimationFrame(animate);
         
-        // Cyber mode dynamic updating (Live Telemetry)
+        // Camera parallax
+        camera.position.x += (targetCameraX - camera.position.x) * 0.05;
+        camera.position.y += (targetCameraY - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
+        // Cyber mode dynamic updating (Live Telemetry from Q-Balam)
         if (config.mode === 'cyber') {
             engine.clear_waves();
             const now = performance.now();
             
             for (const [ip, server] of liveServers.entries()) {
-                // Limpiar nodos inactivos después de 2 segundos (si no están bloqueados)
+                // Limpiar nodos inactivos después de 2 segundos si no están bloqueados
                 if (!server.blocked && now - server.lastSeen > 2000) {
                     liveServers.delete(ip);
                     continue;
@@ -251,53 +280,77 @@ async function bootstrap() {
                 const freqs = ipToFrequencies(server.ip);
                 
                 if (server.blocked) {
-                    // Kill-Switch activo: Explosión roja masiva (Alta amplitud, fase disruptiva)
+                    // Kill-Switch activo: Explosión roja masiva
                     engine.add_wave(freqs.fx, freqs.fy, freqs.fz, 2.0, Math.PI);
                 } else {
                     // Telemetría normal
-                    const amplitude = Math.min(server.magnitude / 4096.0, 1.0); // 4KB = 1.0 amplitud
-                    const phase = server.entropy * Math.PI; // Entropía mapeada a fase
+                    const amplitude = Math.min(server.magnitude / 4096.0, 1.0);
+                    const phase = server.entropy * Math.PI;
                     engine.add_wave(freqs.fx, freqs.fy, freqs.fz, amplitude, phase);
                 }
             }
         }
 
         // EdTech mode dynamic updating
-        if (config.mode === 'edtech') {
-            edTechTime += 0.02;
+        if (config.mode === 'edtech' && isSimRunning) {
+            edTechTime += deltaTime;
             
-            // Stage 2: Measurement (Collapse) at 4 seconds
-            if (edTechStage === 1 && edTechTime > 4.0) {
-                edTechStage = 2;
-                config.capacity = 4500;
-                config.resolution = 0.15;
+            // Stage 1: Probability Cloud (0s to 30s)
+            if (edTechTime < 30.0) {
+                if (edTechStage !== 1) {
+                    edTechStage = 1;
+                    if (infoTitle) infoTitle.innerText = "Fase 1: Nube de Probabilidad";
+                    if (infoDesc) infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda.";
+                    config.capacity = 100;
+                    config.resolution = 0.01;
+                    config.frequency = 1.5;
+                    config.phase2 = 0.0;
+                    applyWaves();
+                }
+            }
+            // Stage 2: Collapse (30s to 60s)
+            else if (edTechTime < 60.0) {
+                if (edTechStage !== 2) {
+                    edTechStage = 2;
+                    if (infoTitle) infoTitle.innerText = "Fase 2: Colapso por Medición";
+                    if (infoDesc) infoDesc.innerText = "Al observar e interactuar, la onda colapsa y define una posición.";
+                    config.capacity = 4500;
+                    config.resolution = 0.15;
+                }
+            }
+            // Stage 3: Uncertainty (60s to 90s)
+            else if (edTechTime < 90.0) {
+                if (edTechStage !== 3) {
+                    edTechStage = 3;
+                    if (infoTitle) infoTitle.innerText = "Fase 3: Incertidumbre (Heisenberg)";
+                    if (infoDesc) infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento.";
+                    config.frequency = 3.5;
+                    config.phase2 = Math.PI;
+                    applyWaves();
+                }
+            }
+            // Reset at 90s
+            else {
+                isSimRunning = false;
+                if (btnStartSim) btnStartSim.innerText = "↻ Reiniciar Simulación";
+                if (btnStartSim) btnStartSim.classList.remove('running');
+                if (infoTitle) infoTitle.innerText = "Simulación Completada";
+                if (infoDesc) infoDesc.innerText = "Has presenciado el efecto observador en un sistema cuántico simulado.";
             }
             
-            // Stage 3: Uncertainty (Heisenberg) at 8 seconds
-            if (edTechStage === 2 && edTechTime > 8.0) {
-                edTechStage = 3;
-                config.frequency = 3.5;
-                config.phase2 = Math.PI; // Inject turbulence
-                applyWaves();
-            }
-            
-            // Reset at 14 seconds
-            if (edTechStage === 3 && edTechTime > 14.0) {
-                edTechStage = 1;
-                edTechTime = 0;
-                config.capacity = 100;
-                config.resolution = 0.01;
-                config.frequency = 1.5;
-                config.phase2 = 0.0;
-                applyWaves();
-            }
+            gui.controllersRecursive().forEach(c => c.updateDisplay());
         }
+
+        // Update UI Metrics
+        if (metricFreq) metricFreq.innerText = config.frequency.toFixed(2) + " Hz";
+        if (metricRes) metricRes.innerText = config.resolution.toFixed(2);
+        if (metricCap) metricCap.innerText = config.capacity.toString();
 
         // Sync observer state
         engine.set_observer_capacity(config.capacity);
         engine.set_observer_resolution(config.resolution);
 
-        // 1. Get raw flat array of particles (This also mutates phase inside Rust!)
+        // 1. Get raw flat array of particles
         const step = Math.max(0.08, config.resolution * 2.0); 
         const particleData = engine.render_particles(-2.5, 2.5, step);
 
@@ -315,12 +368,10 @@ async function bootstrap() {
         particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         particleGeometry.setAttribute('intensity', new THREE.BufferAttribute(intensities, 1));
         
-        // 2. Get Graph Edges (Emergent Geometry)
+        // 2. Get Graph Edges
         const edgeData = engine.get_graph_edges();
-        const numEdges = edgeData.length / 7; // [x1, y1, z1, x2, y2, z2, strength]
+        const numEdges = edgeData.length / 7;
         const linePositions = new Float32Array(numEdges * 6);
-        // Note: we could map strength to colors, but for performance we just use a uniform material
-        // and adjust opacity globally, or use VertexColors. For simplicity, we just draw them.
         
         for (let i = 0; i < numEdges; i++) {
             linePositions[i * 6 + 0] = edgeData[i * 7 + 0];
@@ -332,7 +383,7 @@ async function bootstrap() {
         }
         lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
 
-        // Rotate scene to appreciate 3D depth
+        // Rotate scene
         universeGroup.rotation.y += config.rotationSpeed;
         universeGroup.rotation.x += config.rotationSpeed * 0.5;
 
@@ -345,7 +396,7 @@ async function bootstrap() {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 bootstrap().catch(console.error);
