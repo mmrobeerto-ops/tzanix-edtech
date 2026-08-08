@@ -83,7 +83,7 @@ async function bootstrap() {
     let edTechTime = 0;
     let edTechStage = 1;
 
-    const gui = new GUI({ title: 'Tzanix Quantum Engine' });
+    const gui = new GUI({ title: 'Tzanix Ed Tech' });
     const config = {
         capacity: 2000,
         resolution: 0.05,
@@ -170,7 +170,6 @@ async function bootstrap() {
 
     // UI Buttons Binding
     const btnEdtech = document.getElementById('btn-edtech')!;
-    const btnToggleGui = document.getElementById('btn-toggle-gui')!;
 
     function setActiveBtn(active: HTMLElement) {
         btnEdtech.classList.remove('active');
@@ -180,11 +179,6 @@ async function bootstrap() {
     btnEdtech.addEventListener('click', () => {
         setActiveBtn(btnEdtech);
         config.presetEdTech();
-    });
-    
-    btnToggleGui.addEventListener('click', () => {
-        const guiRoot = document.querySelector('.lil-gui.root');
-        if (guiRoot) guiRoot.classList.toggle('visible');
     });
 
     // Init first wave (default to EdTech for demo purposes)

@@ -186,16 +186,12 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Hide lil-gui by default */
+/* lil-gui visible by default, positioned to avoid overlap */
 .lil-gui.root {
-  display: none;
   position: absolute;
-  right: 2rem !important;
-  top: 5rem !important;
+  right: 1.5rem !important;
+  top: 6.5rem !important; /* increased top to avoid overlapping top-bar */
   pointer-events: auto;
-}
-.lil-gui.root.visible {
-  display: block;
 }
 
 /* Mobile Adjustments */
@@ -218,23 +214,10 @@ body {
   }
 
   .info-panel {
-    bottom: 5rem; /* push above bottom bar on mobile */
+    bottom: 1.5rem; /* flush to bottom since there is no bottom bar */
     left: 0.5rem;
-    width: calc(100vw - 4rem);
+    width: calc(100vw - 3rem);
     padding: 1rem;
-    background: rgba(10, 10, 20, 0.7); /* slightly darker for readability on mobile */
-  }
-
-  .bottom-bar {
-    bottom: 1rem;
-    right: 1rem;
-    left: 1rem;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .glass-btn {
-    width: 100%;
-    padding: 0.5rem;
+    background: rgba(10, 10, 20, 0.85); /* darker for readability on mobile */
   }
 }
