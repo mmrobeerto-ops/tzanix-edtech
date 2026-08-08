@@ -80,6 +80,9 @@ async function bootstrap() {
     universeGroup.add(lineSystem);
 
     // UI Configuration
+    let edTechTime = 0;
+    let edTechStage = 1;
+
     const gui = new GUI({ title: 'Tzanix Quantum Engine' });
     const config = {
         capacity: 2000,
@@ -187,9 +190,6 @@ async function bootstrap() {
     // Init first wave (default to EdTech for demo purposes)
     config.presetEdTech();
     setActiveBtn(btnEdtech);
-
-    let edTechTime = 0;
-    let edTechStage = 1;
 
     // Render loop
     function animate() {
