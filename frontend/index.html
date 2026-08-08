@@ -4,10 +4,55 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Tzanix Quantum Engine</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- 3D WebGL Canvas Container -->
     <div id="app"></div>
+
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+      <header class="top-bar glass">
+        <div class="logo">
+          <h1>TZANIX <span>QUANTUM ENGINE</span></h1>
+        </div>
+        <nav class="controls">
+          <button id="btn-cyber" class="active">Ciberseguridad (DDoS)</button>
+          <button id="btn-edtech">Edu: Efecto Observador</button>
+          <button id="btn-gravity">Red de Gravedad</button>
+        </nav>
+      </header>
+
+      <main class="info-panel glass" id="info-panel">
+        <h2 id="info-title">Inicializando...</h2>
+        <p id="info-desc">Cargando motor cuántico y conectando a WebAssembly.</p>
+        
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Frecuencia de Onda</span>
+            <span class="value" id="metric-freq">0.00 Hz</span>
+          </div>
+          <div class="metric">
+            <span class="label">Resolución</span>
+            <span class="value" id="metric-res">0.00</span>
+          </div>
+          <div class="metric">
+            <span class="label">Capacidad</span>
+            <span class="value" id="metric-cap">0</span>
+          </div>
+        </div>
+      </main>
+      
+      <!-- Footer or advanced toggle -->
+      <div class="bottom-bar">
+        <button id="btn-toggle-gui" class="glass-btn">⚙️ Ajustes Avanzados</button>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

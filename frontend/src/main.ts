@@ -156,6 +156,23 @@ async function bootstrap() {
         engine.add_wave(config.frequency * 1.2, config.frequency * 0.8, config.frequency * 1.1, 0.8, config.phase2);
     }
 
+    // Store DOM references
+    const infoTitle = document.getElementById('info-title')!;
+    const infoDesc = document.getElementById('info-desc')!;
+    const metricFreq = document.getElementById('metric-freq')!;
+    const metricRes = document.getElementById('metric-res')!;
+    const metricCap = document.getElementById('metric-cap')!;
+    
+    // Parallax state
+    let targetCameraX = 0;
+    let targetCameraY = 2;
+    document.addEventListener('mousemove', (e) => {
+        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        targetCameraX = mouseX * 2.0;
+        targetCameraY = 2.0 + mouseY * 1.5;
+    });
+
     const simFolder = gui.addFolder('Observer Filter');
     simFolder.add(config, 'capacity', 100, 10000, 100).listen();
     simFolder.add(config, 'resolution', 0.01, 0.2, 0.01).listen();
@@ -172,8 +189,40 @@ async function bootstrap() {
     presetFolder.add(config, 'presetCybersecurity').name('Cybersecurity Demo');
     presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
-    // Init first wave
-    applyWaves();
+    // UI Buttons Binding
+    const btnCyber = document.getElementById('btn-cyber')!;
+    const btnEdtech = document.getElementById('btn-edtech')!;
+    const btnGravity = document.getElementById('btn-gravity')!;
+    const btnToggleGui = document.getElementById('btn-toggle-gui')!;
+
+    function setActiveBtn(active: HTMLElement) {
+        [btnCyber, btnEdtech, btnGravity].forEach(b => b.classList.remove('active'));
+        active.classList.add('active');
+    }
+
+    btnCyber.addEventListener('click', () => {
+        setActiveBtn(btnCyber);
+        config.presetCybersecurity();
+    });
+    btnEdtech.addEventListener('click', () => {
+        setActiveBtn(btnEdtech);
+        config.presetEdTech();
+    });
+    btnGravity.addEventListener('click', () => {
+        setActiveBtn(btnGravity);
+        config.presetGravityNetwork();
+        infoTitle.innerText = "Red de Gravedad";
+        infoDesc.innerText = "Topología curva generada por la interferencia de 3 ondas.";
+    });
+    
+    btnToggleGui.addEventListener('click', () => {
+        const guiRoot = document.querySelector('.lil-gui.root');
+        if (guiRoot) guiRoot.classList.toggle('visible');
+    });
+
+    // Init first wave (default to EdTech for demo purposes)
+    config.presetEdTech();
+    setActiveBtn(btnEdtech);
 
     let cyberTime = 0;
     let edTechTime = 0;
@@ -183,11 +232,19 @@ async function bootstrap() {
     function animate() {
         requestAnimationFrame(animate);
         
+        // Camera parallax
+        camera.position.x += (targetCameraX - camera.position.x) * 0.05;
+        camera.position.y += (targetCameraY - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
         // Cyber mode dynamic updating
         if (config.mode === 'cyber') {
             cyberTime += 0.02; // Advance time
             if (cyberTime > 30) cyberTime = 0; // Loop the scenario
             
+            infoTitle.innerText = "Monitor DDoS";
+            infoDesc.innerText = "Tráfico: " + Math.floor(cyberTime * 100) + " pkt/s | Alerta Fase: Roja";
+
             const cyberData = generateCyberData(cyberTime);
             engine.clear_waves();
             
@@ -206,11 +263,19 @@ async function bootstrap() {
         if (config.mode === 'edtech') {
             edTechTime += 0.02;
             
+            // Stage 1
+            if (edTechStage === 1) {
+                infoTitle.innerText = "Acto 1: Nube de Probabilidad";
+                infoDesc.innerText = "La partícula cuántica no tiene posición. Es una onda de probabilidad.";
+            }
+
             // Stage 2: Measurement (Collapse) at 4 seconds
             if (edTechStage === 1 && edTechTime > 4.0) {
                 edTechStage = 2;
                 config.capacity = 4500;
                 config.resolution = 0.15;
+                infoTitle.innerText = "Acto 2: Colapso por Medición";
+                infoDesc.innerText = "El acto consciente de medir obligó a la naturaleza a definir una posición.";
             }
             
             // Stage 3: Uncertainty (Heisenberg) at 8 seconds
@@ -219,6 +284,8 @@ async function bootstrap() {
                 config.frequency = 3.5;
                 config.phase2 = Math.PI; // Inject turbulence
                 applyWaves();
+                infoTitle.innerText = "Acto 3: Incertidumbre de Heisenberg";
+                infoDesc.innerText = "Intentar fijar el momento exacto inyectó entropía, disipando la partícula.";
             }
             
             // Reset at 14 seconds
@@ -232,6 +299,11 @@ async function bootstrap() {
                 applyWaves();
             }
         }
+
+        // Update UI Metrics
+        metricFreq.innerText = config.frequency.toFixed(2) + " Hz";
+        metricRes.innerText = config.resolution.toFixed(2);
+        metricCap.innerText = config.capacity.toString();
 
         // Sync observer state
         engine.set_observer_capacity(config.capacity);
