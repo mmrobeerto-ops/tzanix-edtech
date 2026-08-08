@@ -2,7 +2,6 @@ import './style.css';
 import * as THREE from 'three';
 import { GUI } from 'lil-gui';
 import init, { QuantumEngineWasm } from 'tzanix_quantum_engine';
-import { generateCyberData, ipToFrequencies } from './mockData';
 
 async function bootstrap() {
     await init();
@@ -189,7 +188,6 @@ async function bootstrap() {
     config.presetEdTech();
     setActiveBtn(btnEdtech);
 
-    let cyberTime = 0;
     let edTechTime = 0;
     let edTechStage = 1;
 
