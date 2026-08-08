@@ -167,18 +167,6 @@ async function bootstrap() {
     presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
     // UI Buttons Binding
-    const btnEdtech = document.getElementById('btn-edtech')!;
-
-    function setActiveBtn(active: HTMLElement) {
-        btnEdtech.classList.remove('active');
-        active.classList.add('active');
-    }
-
-    btnEdtech.addEventListener('click', () => {
-        setActiveBtn(btnEdtech);
-        config.presetEdTech();
-    });
-
     // Init first wave (default to Free Mode for demo purposes)
     config.mode = 'physics';
     applyWaves();
@@ -194,7 +182,6 @@ async function bootstrap() {
             edTechStage = 0;
             btnStartSim.innerText = "⏹ Detener Simulación";
             btnStartSim.classList.add('running');
-            setActiveBtn(btnEdtech);
             config.presetEdTech(); // sets mode to edtech
         } else {
             isSimRunning = false;
