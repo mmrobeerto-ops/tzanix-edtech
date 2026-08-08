@@ -80,9 +80,6 @@ async function bootstrap() {
     universeGroup.add(lineSystem);
 
     // UI Configuration
-    let edTechTime = 0;
-    let edTechStage = 1;
-
     const gui = new GUI({ title: 'Tzanix Ed Tech' });
     const config = {
         capacity: 2000,
