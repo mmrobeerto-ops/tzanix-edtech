@@ -62,7 +62,7 @@ async function bootstrap() {
     const engine = new QuantumEngineWasm(2000, 0.05);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#05050f');
+    // scene.background removed to allow CSS background to show through
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 6;
@@ -72,7 +72,7 @@ async function bootstrap() {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setClearColor(0x05050f, 1);
+    renderer.setClearColor(0x000000, 0); // Transparent to show CSS grid
     document.querySelector('#app')?.appendChild(renderer.domElement);
 
     // Group for rotation
@@ -162,13 +162,6 @@ async function bootstrap() {
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         },
-        presetCybersecurity: () => {
-            config.mode = 'cyber';
-            config.capacity = 5000;
-            config.resolution = 0.02;
-            config.rotationSpeed = 0.001;
-            gui.controllersRecursive().forEach(c => c.updateDisplay());
-        },
         presetEdTech: () => {
             config.mode = 'edtech';
             config.capacity = 100;
@@ -222,7 +215,6 @@ async function bootstrap() {
     const presetFolder = gui.addFolder('Presets (Entities)');
     presetFolder.add(config, 'presetStableParticle').name('Stable Particle');
     presetFolder.add(config, 'presetVacuum').name('Quantum Vacuum');
-    presetFolder.add(config, 'presetCybersecurity').name('Cybersecurity Live');
     presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
     // Init state
