@@ -26,9 +26,13 @@ body {
   padding: 0;
   font-family: var(--sans);
   color: var(--text);
-  /* The Absolute Void Vignette Background */
-  background: radial-gradient(circle at center, #000000 40%, #020408 80%, #05070a 100%);
-  background-color: #000000;
+  /* The Absolute Void Vignette Background with Blueprint Grid */
+  background: 
+    radial-gradient(circle at center, rgba(0,0,0,0) 40%, rgba(5,7,10,1) 100%),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-color: #010205; /* Deep space */
   overflow: hidden; /* Prevent scrolling */
   user-select: none;
 }
@@ -207,19 +211,23 @@ body {
 }
 
 .glass-btn {
-  background: var(--glass-bg);
+  background: transparent;
   backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: var(--text);
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 0px; /* brutalist */
   cursor: pointer;
-  font-family: var(--sans);
-  transition: all 0.3s ease;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0s;
 }
 
 .glass-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  color: #000;
 }
 
 /* Hide lil-gui by default, position it above the button */
@@ -237,6 +245,25 @@ body {
 
 .lil-gui .slider {
   background-color: var(--accent) !important;
+}
+
+/* Brutalist styling for lil-gui buttons (Presets) */
+.lil-gui .controller.function button {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: var(--text-color) !important;
+  border-radius: 0px !important;
+  text-transform: uppercase !important;
+  font-family: var(--font-mono) !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0s !important; /* Instant brutalist transition */
+}
+
+.lil-gui .controller.function button:hover {
+  background: var(--accent) !important;
+  color: #000 !important;
+  border-color: var(--accent) !important;
 }
 
 .lil-gui.root.visible {
