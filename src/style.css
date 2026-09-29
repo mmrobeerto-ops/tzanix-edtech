@@ -94,13 +94,20 @@ body {
   color: #ffffff;
 }
 
-.logo-i {
-  font-family: var(--font-title);
-  font-weight: 900;
-  font-style: italic;
-  color: var(--accent);
+/* SVG custom 'i' — matches landing page */
+.logo-text {
+  display: flex;
+  align-items: center;
 }
 
+.logo-svg-i {
+  height: 22px;
+  width: auto;
+  margin: 0 3px;
+  position: relative;
+  top: -2px;   /* optical alignment with the letter caps */
+  flex-shrink: 0;
+}
 .logo-edtech {
   font-family: var(--font-mono);
   font-weight: 400;

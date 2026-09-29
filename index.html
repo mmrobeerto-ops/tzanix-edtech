@@ -18,7 +18,21 @@
     <div id="ui-overlay">
       <header class="top-bar">
         <div class="logo">
-          <h1 class="logo-text"><span class="logo-tzan">TZAN</span><i class="logo-i">i</i><span class="logo-tzan">X</span> <span class="logo-edtech">EDTECH</span></h1>
+          <h1 class="logo-text">
+            <span class="logo-tzan">TZAN</span>
+            <!-- Custom SVG 'i' — punto cyan + tallo blanco geométrico -->
+            <svg viewBox="0 0 24 42" class="logo-svg-i" aria-hidden="true">
+              <!-- Punto Cyan -->
+              <circle cx="12" cy="6" r="6" fill="#00f0ff" style="filter:drop-shadow(0px 0px 8px #00f0ff)" />
+              <!-- Tallo geométrico blanco -->
+              <g fill="white" style="filter:drop-shadow(0px 0px 10px rgba(255,255,255,0.2))">
+                <path d="M 8 16 L 18 16 L 18 34 L 7 17.5 Q 6 16 8 16 Z" />
+                <path d="M 16 42 L 6 42 L 6 24 L 17 40.5 Q 18 42 16 42 Z" />
+              </g>
+            </svg>
+            <span class="logo-tzan">X</span>
+            <span class="logo-edtech">EDTECH</span>
+          </h1>
         </div>
       </header>
 
