@@ -69,7 +69,7 @@ async function bootstrap() {
     camera.position.y = 2;
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setClearColor(0x000000, 0); // Transparent to show CSS grid
@@ -279,6 +279,117 @@ async function bootstrap() {
             }
         });
     }
+
+
+    // ════════════════════════════════════════════════════
+    // ① GANCHO VISUAL — dismiss hint on first interaction
+    // ════════════════════════════════════════════════════
+    const touchHint = document.getElementById('touch-hint');
+    function dismissHint() {
+        if (touchHint && !touchHint.classList.contains('hidden')) {
+            touchHint.classList.add('hidden');
+            // fully remove after transition
+            setTimeout(() => touchHint.remove(), 700);
+        }
+    }
+    // Auto-dismiss after 6s or on first touch/click
+    setTimeout(dismissHint, 6000);
+    document.addEventListener('pointerdown', dismissHint, { once: true });
+
+    // Load params from URL hash on startup (for shared links)
+    const urlHash = new URLSearchParams(window.location.hash.replace('#', ''));
+    if (urlHash.get('cap'))   config.capacity   = Number(urlHash.get('cap'));
+    if (urlHash.get('res'))   config.resolution = Number(urlHash.get('res'));
+    if (urlHash.get('freq'))  config.frequency  = Number(urlHash.get('freq'));
+    if (urlHash.get('ph1'))   config.phase1     = Number(urlHash.get('ph1'));
+    if (urlHash.get('ph2'))   config.phase2     = Number(urlHash.get('ph2'));
+    gui.controllersRecursive().forEach(c => c.updateDisplay());
+    applyWaves();
+
+    // ════════════════════════════════════════════════════
+    // ② CAPTURA + ENLACE COMPARTIBLE
+    // ════════════════════════════════════════════════════
+    const btnScreenshot = document.getElementById('btn-screenshot');
+    const btnShare      = document.getElementById('btn-share');
+
+    btnScreenshot?.addEventListener('click', () => {
+        // Force one render at full pixel ratio before capturing
+        renderer.render(scene, camera);
+        const dataURL = renderer.domElement.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = `tzanix-quantum-${Date.now()}.png`;
+        a.click();
+        // Flash feedback
+        btnScreenshot.classList.add('flash');
+        setTimeout(() => btnScreenshot.classList.remove('flash'), 600);
+    });
+
+    btnShare?.addEventListener('click', () => {
+        const params = new URLSearchParams({
+            cap:  config.capacity.toString(),
+            res:  config.resolution.toString(),
+            freq: config.frequency.toString(),
+            ph1:  config.phase1.toString(),
+            ph2:  config.phase2.toString(),
+        });
+        const shareUrl = `${window.location.origin}${window.location.pathname}#${params.toString()}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            // Flash feedback + change label briefly
+            const label = btnShare.querySelector('.share-label');
+            if (label) { const orig = label.textContent; label.textContent = '¡COPIADO!'; setTimeout(() => label.textContent = orig, 2000); }
+            btnShare.classList.add('flash');
+            setTimeout(() => btnShare.classList.remove('flash'), 600);
+        });
+    });
+
+    // ════════════════════════════════════════════════════
+    // ③ TOOLTIPS DIDÁCTICOS al mover parámetros
+    // ════════════════════════════════════════════════════
+    const tooltip = document.getElementById('param-tooltip');
+    let tooltipTimer: ReturnType<typeof setTimeout>;
+
+    const tooltipTexts: Record<string, { title: string; desc: string }> = {
+        capacity: {
+            title: 'Espacio de Hilbert',
+            desc:  'Al subir la capacidad, el radio del espacio de Hilbert crece. La partícula puede existir en más estados simultáneos — la malla se expande y absorbe energía.'
+        },
+        resolution: {
+            title: 'Resolución Cuántica',
+            desc:  'Define el nivel de detalle del muestreo. Valores bajos revelan la estructura interna de la onda; valores altos muestran el campo completo de probabilidad.'
+        },
+        frequency: {
+            title: 'Energía de Oscilación',
+            desc:  'La frecuencia controla la energía de la onda estacionaria (E = hν). Al subirla, aceleras la vibración de los tensores en el plano 3D.'
+        },
+        phase1: {
+            title: 'Desfase Angular (Eje X/Y)',
+            desc:  'Modifica el ángulo del número complejo de la onda. Crea interferencia constructiva que "dobla" la geometría del holograma horizontalmente.'
+        },
+        phase2: {
+            title: 'Profundidad de Onda (Eje Z)',
+            desc:  'Controla la interferencia en profundidad. Combina con Phase 1 para desestabilizar la simetría del sistema y crear nodos de caos inercial en la malla.'
+        },
+    };
+
+    function showTooltip(key: string) {
+        const entry = tooltipTexts[key];
+        if (!tooltip || !entry) return;
+        tooltip.innerHTML = `<strong>${entry.title}</strong>${entry.desc}`;
+        tooltip.classList.add('visible');
+        clearTimeout(tooltipTimer);
+        tooltipTimer = setTimeout(() => tooltip.classList.remove('visible'), 4000);
+    }
+
+    // Wire tooltips to each GUI controller onChange
+    simFolder.controllers.forEach(c => {
+        const prop = (c as any).property as string;
+        c.onChange(() => showTooltip(prop));
+    });
+    waveFolder.controllers.forEach(c => {
+        const prop = (c as any).property as string;
+        c.onChange(() => showTooltip(prop));
+    });
 
     let lastTime = performance.now();
 

@@ -58,6 +58,28 @@
         <button id="btn-start-sim" class="btn-play">▶ Iniciar Simulación Educativa</button>
       </main>
 
+      <!-- ① GANCHO VISUAL: hint que desaparece al primer toque -->
+      <div id="touch-hint" aria-hidden="true">
+        <div class="hint-inner">
+          <span class="hint-icon">✦</span>
+          <span class="hint-text">TOCA LA PANTALLA PARA COLAPSAR LA ONDA</span>
+          <span class="hint-icon">✦</span>
+        </div>
+      </div>
+
+      <!-- ③ TOOLTIP DIDÁCTICO flotante -->
+      <div id="param-tooltip" class="param-tooltip" aria-live="polite"></div>
+
+      <!-- ② BARRA DE COMPARTIR (bottom-left) -->
+      <div class="share-bar">
+        <button id="btn-screenshot" class="share-btn" title="Capturar imagen en alta resolución">
+          <span>📸</span><span class="share-label">CAPTURAR</span>
+        </button>
+        <button id="btn-share" class="share-btn" title="Copiar enlace con los parámetros actuales">
+          <span>🔗</span><span class="share-label">COMPARTIR</span>
+        </button>
+      </div>
+
       <!-- Bottom bar: Advanced toggle (desktop only) -->
       <div class="bottom-bar">
         <button id="btn-advanced" class="glass-btn">PARÁMETROS AVANZADOS</button>
