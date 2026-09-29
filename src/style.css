@@ -521,12 +521,13 @@ body {
    ============================================== */
 .param-tooltip {
   position: fixed;
-  top: 50%;
-  right: 1.5rem;
-  transform: translateY(-50%);
-  max-width: 220px;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 5, 15, 0.88);
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 420px;
+  width: max-content;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 5, 15, 0.92);
   border: 1px solid rgba(0, 240, 255, 0.3);
   border-left: 3px solid var(--accent);
   backdrop-filter: blur(12px);
@@ -576,11 +577,11 @@ body {
   .hint-text { font-size: 0.58rem; }
 
   .param-tooltip {
-    top: auto;
-    bottom: 4rem;
-    right: 0.5rem;
-    left: 0.5rem;
+    bottom: 4.5rem;
+    left: 0.75rem;
+    right: 0.75rem;
     max-width: none;
+    width: auto;
     transform: none;
   }
 }
