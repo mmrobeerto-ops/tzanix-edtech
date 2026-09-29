@@ -476,16 +476,13 @@ body {
 }
 
 /* ==============================================
-   ② BARRA DE COMPARTIR
+   ② BOTONES DE COMPARTIR — dentro del info-panel
    ============================================== */
-.share-bar {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
+.panel-actions {
   display: flex;
   gap: 0.5rem;
+  margin-top: 0.75rem;
   pointer-events: auto;
-  z-index: 50;
 }
 
 .share-btn {

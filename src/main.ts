@@ -133,7 +133,7 @@ async function bootstrap() {
 
     // UI Configuration
     const isMobile = () => window.innerWidth <= 900;
-    const gui = new GUI({ title: 'Tzanix Q-Balam' });
+    const gui = new GUI({ title: 'TZANIX AJUSTES' });
     const config = {
         capacity: 2000,
         resolution: 0.05,
@@ -227,11 +227,13 @@ async function bootstrap() {
 
     function applyMobileLayout() {
         if (isMobile()) {
+            // On mobile: force hide GUI, hide bottom bar button
             guiEl.style.display = 'none';
             guiEl.classList.remove('visible');
-            if (bottomBar) bottomBar.style.display = 'none'; // no advanced panel on mobile
+            if (bottomBar) bottomBar.style.display = 'none';
         } else {
-            // On desktop, show the bottom-bar advanced toggle
+            // On desktop: clear inline style so CSS class controls visibility
+            guiEl.style.display = '';
             if (bottomBar) bottomBar.style.display = 'flex';
         }
     }
@@ -247,12 +249,19 @@ async function bootstrap() {
         targetCameraY = 2.0 + mouseY * 1.5;
     }, { passive: true });
 
-    // ── Bottom-bar toggle wires the gui on desktop ───────────────────────────
+    // ── Bottom-bar toggle: properly show/hide the GUI panel ──────────────────
     const advancedBtn = document.getElementById('btn-advanced');
     if (advancedBtn) {
         advancedBtn.addEventListener('click', () => {
-            if (isMobile()) return; // disabled on mobile
-            guiEl.classList.toggle('visible');
+            if (isMobile()) return;
+            const isOpen = guiEl.classList.contains('visible');
+            if (isOpen) {
+                guiEl.classList.remove('visible');
+                advancedBtn.textContent = 'PARÁMETROS AVANZADOS';
+            } else {
+                guiEl.classList.add('visible');
+                advancedBtn.textContent = 'CERRAR AJUSTES ✕';
+            }
         });
     }
 
