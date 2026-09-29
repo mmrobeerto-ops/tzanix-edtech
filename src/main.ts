@@ -132,6 +132,7 @@ async function bootstrap() {
     universeGroup.add(lineSystem);
 
     // UI Configuration
+    const isMobile = () => window.innerWidth <= 900;
     const gui = new GUI({ title: 'Tzanix Q-Balam' });
     const config = {
         capacity: 2000,
@@ -219,6 +220,42 @@ async function bootstrap() {
 
     // Init state
     applyWaves();
+
+    // ── Mobile: hide lil-gui panel on small screens ──────────────────────────
+    const guiEl = gui.domElement as HTMLElement;
+    const bottomBar = document.querySelector('.bottom-bar') as HTMLElement | null;
+
+    function applyMobileLayout() {
+        if (isMobile()) {
+            guiEl.style.display = 'none';
+            guiEl.classList.remove('visible');
+            if (bottomBar) bottomBar.style.display = 'none'; // no advanced panel on mobile
+        } else {
+            // On desktop, show the bottom-bar advanced toggle
+            if (bottomBar) bottomBar.style.display = 'flex';
+        }
+    }
+    applyMobileLayout();
+    window.addEventListener('resize', applyMobileLayout);
+
+    // ── Touch parallax (replace mousemove for mobile) ────────────────────────
+    document.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(touch.clientY / window.innerHeight) * 2 + 1;
+        targetCameraX = mouseX * 2.0;
+        targetCameraY = 2.0 + mouseY * 1.5;
+    }, { passive: true });
+
+    // ── Bottom-bar toggle wires the gui on desktop ───────────────────────────
+    const advancedBtn = document.getElementById('btn-advanced');
+    if (advancedBtn) {
+        advancedBtn.addEventListener('click', () => {
+            if (isMobile()) return; // disabled on mobile
+            guiEl.classList.toggle('visible');
+        });
+    }
+
 
     let edTechTime = 0;
     let edTechStage = 0;

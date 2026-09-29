@@ -208,6 +208,7 @@ body {
   bottom: 2rem;
   right: 2rem;
   pointer-events: auto;
+  display: none; /* hidden by default; JS shows on desktop, CSS shows on mobile */
 }
 
 .glass-btn {
