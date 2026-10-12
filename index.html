@@ -79,18 +79,18 @@
           </div>
 
           <button id="btn-start-sim" class="btn-play-power">⚡ ENCENDER SIMULACIÓN (30s)</button>
-
-          <!-- Botones de Captura y Compartir dentro del panel de forma ordenada -->
-          <div class="panel-actions">
-            <button id="btn-screenshot" class="share-btn" title="Captura el holograma en alta resolución">
-              <span>📸</span><span class="share-label">CAPTURAR</span>
-            </button>
-            <button id="btn-share" class="share-btn" title="Copia un enlace con los parámetros actuales para compartir">
-              <span>🔗</span><span class="share-label">COMPARTIR</span>
-            </button>
-          </div>
         </div>
       </main>
+
+      <!-- ② BARRA DE COMPARTIR (esquina inferior izquierda) -->
+      <div class="share-bar">
+        <button id="btn-screenshot" class="share-btn" title="Capturar imagen en alta resolución">
+          <span>📸</span><span class="share-label">CAPTURAR</span>
+        </button>
+        <button id="btn-share" class="share-btn" title="Copiar enlace con los parámetros actuales">
+          <span>🔗</span><span class="share-label">COMPARTIR</span>
+        </button>
+      </div>
 
       <!-- Botón Flotante de Ajustes (reubicado a la esquina inferior derecha) -->
       <button id="btn-toggle-gui" class="fab-ajustes" title="Ajustes de parámetros cuánticos" aria-label="Ajustes de parámetros">
@@ -102,7 +102,7 @@
       <div id="touch-hint" aria-hidden="true">
         <div class="hint-inner">
           <span class="hint-icon">✦</span>
-          <span class="hint-text">ARRASTRA PARA ROTAR EN 3D ✦ PELLIZCA PARA ZOOM</span>
+          <span class="hint-text">TOCA LA PANTALLA PARA COLAPSAR LA ONDA</span>
           <span class="hint-icon">✦</span>
         </div>
       </div>

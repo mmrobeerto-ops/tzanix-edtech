@@ -709,38 +709,43 @@ body {
 }
 
 /* ==============================================
-   ② BOTONES DE COMPARTIR — dentro del info-panel
+   ② BOTONES DE COMPARTIR (esquina inferior izquierda)
    ============================================== */
-.panel-actions {
+.share-bar {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.75rem;
   pointer-events: auto;
+  z-index: 100;
 }
 
 .share-btn {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.75);
-  padding: 0.45rem 0.85rem;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.55rem 0.95rem;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
 }
 
 .share-btn:hover {
-  background: rgba(0, 240, 255, 0.12);
+  background: rgba(0, 240, 255, 0.15);
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-2px);
 }
 
 .share-btn.flash {
@@ -754,25 +759,25 @@ body {
    ============================================== */
 .param-tooltip {
   position: fixed;
-  bottom: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 420px;
-  width: max-content;
-  padding: 0.75rem 1.25rem;
-  background: rgba(0, 5, 15, 0.92);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  border-left: 3px solid var(--accent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  top: 50%;
+  right: 23rem; /* Justo al lado izquierdo del panel de ajustes en desktop */
+  transform: translateY(-50%);
+  max-width: 280px;
+  padding: 0.85rem 1.15rem;
+  background: rgba(4, 8, 16, 0.94);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 240, 255, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.5;
-  z-index: 300;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.55;
+  z-index: 600;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .param-tooltip.visible {
@@ -782,36 +787,36 @@ body {
 .param-tooltip strong {
   display: block;
   color: var(--accent);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 /* Mobile adjustments for new elements */
 @media (max-width: 600px) {
   .share-bar {
-    bottom: 0.75rem;
-    left: 0.5rem;
+    bottom: 1.25rem;
+    left: 1.25rem;
     gap: 0.35rem;
   }
 
   .share-label { display: none; } /* show only emoji on mobile */
 
   .share-btn {
-    padding: 0.55rem 0.7rem;
-    font-size: 1rem; /* bigger emoji */
+    padding: 0.55rem 0.75rem;
+    font-size: 1.05rem; /* bigger emoji */
   }
 
   #touch-hint {
-    bottom: 3.5rem;
+    bottom: 4.8rem;
   }
 
   .hint-text { font-size: 0.58rem; }
 
   .param-tooltip {
-    top: 4.0rem;
-    bottom: auto;
+    top: auto;
+    bottom: 76vh; /* Justo encima del cajón de ajustes en celular */
     left: 0.75rem;
     right: 0.75rem;
     max-width: none;
@@ -820,3 +825,4 @@ body {
     z-index: 600;
   }
 }
+

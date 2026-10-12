@@ -88,7 +88,7 @@ async function bootstrap() {
             void main() {
                 vIntensity = intensity;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                gl_PointSize = (2.2 + vIntensity * 2.8) * (38.0 / -mvPosition.z);
+                gl_PointSize = (0.8 + vIntensity * 1.6) * (20.0 / -mvPosition.z);
                 gl_Position = projectionMatrix * mvPosition;
             }
         `,
@@ -97,20 +97,19 @@ async function bootstrap() {
             void main() {
                 float dist = length(gl_PointCoord - vec2(0.5));
                 if (dist > 0.5) discard;
-                float glow = smoothstep(0.5, 0.0, dist);
+                float softEdge = smoothstep(0.5, 0.0, dist);
                 float core = smoothstep(0.2, 0.0, dist);
                 
                 vec3 cyan = vec3(0.0, 0.95, 1.0);
+                vec3 deepBlue = vec3(0.0, 0.35, 0.95);
                 vec3 white = vec3(1.0, 1.0, 1.0);
-                vec3 anomaly = vec3(1.0, 0.2, 0.2);
                 
-                vec3 baseColor = mix(cyan, white, core * 0.75);
-                vec3 finalColor = mix(baseColor, anomaly, smoothstep(0.4, 0.8, vIntensity));
+                vec3 color = mix(deepBlue, cyan, vIntensity);
+                color = mix(color, white, core * 0.7);
                 
-                // Opacidad alta y núcleo resplandeciente para máxima visibilidad
-                float alpha = (core * 0.9 + glow * 0.7) * (0.6 + vIntensity * 0.4);
+                float alpha = (core * 0.8 + softEdge * 0.4) * (0.35 + vIntensity * 0.65);
                 
-                gl_FragColor = vec4(finalColor, alpha);
+                gl_FragColor = vec4(color, alpha);
             }
         `,
         transparent: true,
@@ -241,6 +240,11 @@ async function bootstrap() {
     const btnMinimizePanel = document.getElementById('btn-minimize-panel');
     const minimizeIcon = document.getElementById('minimize-icon');
 
+    // Declarar variables de cámara antes de inicializar layout para evitar TDZ ReferenceError
+    let targetCameraX = 0;
+    let targetCameraY = 2.0;
+    let targetCameraZ = isMobile() ? 6.6 : 6.0;
+
     // Botón para abrir/cerrar ajustes en móvil y desktop
     btnToggleGui?.addEventListener('click', () => {
         const isOpen = guiEl.classList.toggle('visible');
@@ -289,9 +293,6 @@ async function bootstrap() {
     let prevPointerY = 0;
     let velRotationX = 0;
     let velRotationY = 0;
-    let targetCameraZ = isMobile() ? 7.0 : 6.0;
-    let targetCameraX = 0;
-    let targetCameraY = 2.0;
     let initialPinchDist = 0;
     let lastUserInteractionTime = 0;
     let touchStartX = 0;
@@ -534,23 +535,23 @@ async function bootstrap() {
 
     const tooltipTexts: Record<string, { title: string; desc: string }> = {
         capacity: {
-            title: 'Espacio de Hilbert',
+            title: 'ESPACIO DE HILBERT',
             desc:  'Al subir la capacidad, el radio del espacio de Hilbert crece. La partícula puede existir en más estados simultáneos — la malla se expande y absorbe energía.'
         },
         resolution: {
-            title: 'Resolución Cuántica',
+            title: 'RESOLUCIÓN CUÁNTICA',
             desc:  'Define el nivel de detalle del muestreo. Valores bajos revelan la estructura interna de la onda; valores altos muestran el campo completo de probabilidad.'
         },
         frequency: {
-            title: 'Energía de Oscilación',
+            title: 'ENERGÍA DE OSCILACIÓN',
             desc:  'La frecuencia controla la energía de la onda estacionaria (E = hν). Al subirla, aceleras la vibración de los tensores en el plano 3D.'
         },
         phase1: {
-            title: 'Desfase Angular (Eje X/Y)',
+            title: 'DESFASE ANGULAR (EJE X/Y)',
             desc:  'Modifica el ángulo del número complejo de la onda. Crea interferencia constructiva que "dobla" la geometría del holograma horizontalmente.'
         },
         phase2: {
-            title: 'Profundidad de Onda (Eje Z)',
+            title: 'PROFUNDIDAD DE ONDA (EJE Z)',
             desc:  'Controla la interferencia en profundidad. Combina con Phase 1 para desestabilizar la simetría del sistema y crear nodos de caos inercial en la malla.'
         },
     };
@@ -564,14 +565,33 @@ async function bootstrap() {
         tooltipTimer = setTimeout(() => tooltip.classList.remove('visible'), 4000);
     }
 
-    // Wire tooltips to each GUI controller onChange
+    // Wire tooltips to each GUI controller onChange, onFinishChange, pointerdown and input
     simFolder.controllers.forEach(c => {
         const prop = (c as any).property as string;
         c.onChange(() => showTooltip(prop));
+        c.onFinishChange(() => showTooltip(prop));
+        c.domElement?.addEventListener('pointerdown', () => showTooltip(prop));
+        c.domElement?.addEventListener('input', () => showTooltip(prop));
     });
     waveFolder.controllers.forEach(c => {
         const prop = (c as any).property as string;
-        c.onChange(() => showTooltip(prop));
+        c.onChange(() => {
+            applyWaves();
+            showTooltip(prop);
+        });
+        c.onFinishChange(() => {
+            applyWaves();
+            showTooltip(prop);
+        });
+        c.domElement?.addEventListener('pointerdown', () => showTooltip(prop));
+        c.domElement?.addEventListener('input', () => showTooltip(prop));
+    });
+
+    // Toque o clic en pantalla para colapsar la onda interactivamente
+    window.addEventListener('click', (e: MouseEvent) => {
+        if (isUIElement(e.target)) return;
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;
+        engine.add_wave(config.frequency * 1.5, config.frequency * 1.2, config.frequency, 1.2, normX * Math.PI);
     });
 
     let lastTime = performance.now();
@@ -780,4 +800,6 @@ async function bootstrap() {
     requestAnimationFrame(animate);
 }
 
-bootstrap().catch(console.error);
+bootstrap().catch((err) => {
+    console.error('BOOTSTRAP ERROR FULL STACK:', err?.stack || err);
+});
