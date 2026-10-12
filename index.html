@@ -48,8 +48,8 @@
       <main class="info-panel" id="info-panel">
         <div class="panel-header-row">
           <div class="panel-title-group">
-            <h2 id="info-title">Inicializando...</h2>
-            <p id="info-desc">Cargando motor cuántico y conectando a WebAssembly.</p>
+            <h2 id="info-title">Fase 1: Nube de Probabilidad</h2>
+            <p id="info-desc">Sin observación, la partícula existe en superposición cuántica (0s - 10s).</p>
           </div>
           <!-- Botón para plegar / desplegar información en móviles y pantallas pequeñas -->
           <button id="btn-minimize-panel" class="panel-minimize-btn" title="Plegar / desplegar panel" aria-label="Plegar panel">
@@ -60,22 +60,22 @@
         <div class="panel-collapsible-body" id="panel-body">
           <div class="metrics">
             <div class="metric">
-              <span class="label">Frecuencia de Onda</span>
-              <span class="value" id="metric-freq">0.00 Hz</span>
+              <span class="label">Frecuencia</span>
+              <span class="value" id="metric-freq">1.50 Hz</span>
             </div>
             <div class="metric">
               <span class="label">Resolución</span>
-              <span class="value" id="metric-res">0.00</span>
+              <span class="value" id="metric-res">0.01</span>
             </div>
             <div class="metric">
               <span class="label">Capacidad</span>
-              <span class="value" id="metric-cap">0</span>
+              <span class="value" id="metric-cap">100</span>
             </div>
           </div>
 
-          <button id="btn-start-sim" class="btn-play">▶ Iniciar Simulación Educativa</button>
+          <button id="btn-start-sim" class="btn-play running">⏹ Detener Simulación</button>
 
-          <!-- ② Botones de Compartir — dentro del panel -->
+          <!-- Botones de Captura y Compartir dentro del panel de forma ordenada -->
           <div class="panel-actions">
             <button id="btn-screenshot" class="share-btn" title="Captura el holograma en alta resolución">
               <span>📸</span><span class="share-label">CAPTURAR</span>

@@ -313,18 +313,33 @@ body {
   padding-bottom: 0.4rem !important;
 }
 
-/* Hide lil-gui by default on desktop, position bottom right */
+/* lil-gui base styling — oculto por defecto en todos los dispositivos */
 .lil-gui.root {
-  display: none;
-  position: absolute;
+  display: none !important;
+  position: fixed !important;
   right: 2rem !important;
-  bottom: 5rem !important;
+  bottom: 3rem !important;
   top: auto !important;
+  left: auto !important;
+  width: 310px !important;
+  max-width: 320px !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
   pointer-events: auto;
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  z-index: 200;
+  background: rgba(8, 10, 16, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+  z-index: 500 !important;
+}
+
+/* Ocultar barra de título nativa de lil-gui para evitar solapamientos con la barra superior */
+.lil-gui > .title,
+.lil-gui.root > .title {
+  display: none !important;
 }
 
 .lil-gui .slider {
@@ -353,6 +368,7 @@ body {
   border-color: var(--accent) !important;
 }
 
+/* Mostrar lil-gui ÚNICAMENTE cuando tiene la clase .visible */
 .lil-gui.root.visible {
   display: block !important;
 }
@@ -362,26 +378,47 @@ body {
    ============================================= */
 @media (max-width: 600px) {
   .top-bar {
-    padding: 0.6rem 0.75rem;
+    padding: 0.5rem 0.75rem;
+    height: 3.2rem;
+    box-sizing: border-box;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
+    background: rgba(1, 2, 5, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .logo-text  { font-size: 1.15rem; }
-  .logo-edtech { font-size: 0.85rem; }
+  .logo-text   { font-size: 1.15rem; }
+  .logo-svg-i  { height: 18px; margin: 0 2px; }
+  .logo-edtech { font-size: 0.8rem; margin-left: 0.35rem; }
+  .btn-gui-toggle { padding: 0.35rem 0.65rem; font-size: 0.7rem; }
 
   .info-panel {
     bottom: auto;
-    top: 4.2rem;
-    left: 0.5rem;
-    right: 0.5rem;
+    top: 3.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
     width: auto;
     max-width: none;
-    padding: 0.65rem;
-    background: rgba(5, 7, 14, 0.92);
-    border: 1px solid rgba(0, 240, 255, 0.2);
+    padding: 0.65rem 0.85rem;
+    background: rgba(5, 7, 14, 0.94);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    border-radius: 4px;
+    z-index: 40;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  }
+
+  .info-panel.collapsed {
+    padding-bottom: 0.4rem !important;
+  }
+  .info-panel.collapsed p#info-desc {
+    display: none !important;
+  }
+  .info-panel.collapsed h2#info-title {
+    margin-bottom: 0 !important;
   }
 
   .info-panel h2 { font-size: 0.85rem; margin-bottom: 0.2rem; }
@@ -412,6 +449,7 @@ body {
 
   /* Lil-GUI como cajón inferior (Bottom Sheet Drawer) en móviles */
   .lil-gui.root {
+    display: none !important; /* Oculto estrictamente hasta que se abra */
     position: fixed !important;
     top: auto !important;
     bottom: 0 !important;
@@ -419,28 +457,23 @@ body {
     right: 0 !important;
     width: 100vw !important;
     max-width: 100vw !important;
-    max-height: 52vh !important;
+    max-height: 48vh !important;
     overflow-y: auto !important;
     border-radius: 14px 14px 0 0 !important;
     border-top: 2px solid var(--accent) !important;
     border-left: none !important;
     border-right: none !important;
     border-bottom: none !important;
-    background: rgba(8, 10, 16, 0.97) !important;
+    background: rgba(8, 10, 16, 0.98) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     z-index: 500 !important;
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.9) !important;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.95) !important;
     padding-bottom: 2rem !important;
   }
 
-  .lil-gui .title {
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.15em !important;
-    padding: 8px 12px !important;
-    background: #000 !important;
-    color: var(--accent) !important;
+  .lil-gui.root.visible {
+    display: block !important;
   }
 
   .lil-gui .name {
@@ -672,11 +705,13 @@ body {
   .hint-text { font-size: 0.58rem; }
 
   .param-tooltip {
-    bottom: 4.5rem;
+    top: 4.0rem;
+    bottom: auto;
     left: 0.75rem;
     right: 0.75rem;
     max-width: none;
     width: auto;
     transform: none;
+    z-index: 600;
   }
 }

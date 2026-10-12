@@ -49,9 +49,9 @@ function connectQGuardWebSocket() {
             console.error('Error parseando WebSocket:', e);
         }
     };
+    ws.onerror = () => {};
     ws.onclose = () => {
-        console.warn('WebSocket desconectado. Reconectando en 2s...');
-        setTimeout(connectQGuardWebSocket, 2000);
+        setTimeout(connectQGuardWebSocket, 15000);
     };
 }
 connectQGuardWebSocket();
@@ -135,13 +135,13 @@ async function bootstrap() {
     const isMobile = () => window.innerWidth <= 900;
     const gui = new GUI({ title: 'TZANIX AJUSTES' });
     const config = {
-        capacity: 2000,
-        resolution: 0.05,
+        capacity: 100,
+        resolution: 0.01,
         phase1: 0.0,
-        phase2: Math.PI / 4,
-        frequency: 1.0,
+        phase2: 0.0,
+        frequency: 1.5,
         rotationSpeed: 0.005,
-        mode: 'cyber', // Default to cyber mode to receive Q-Balam data
+        mode: 'edtech', // Por defecto en modo educativo EdTech para mostrar partículas inmediatamente
         // Presets
         presetStableParticle: () => {
             config.mode = 'physics';
@@ -174,6 +174,10 @@ async function bootstrap() {
             isSimRunning = true;
             edTechTime = 0;
             edTechStage = 0;
+            if (btnStartSim) {
+                btnStartSim.innerText = "⏹ Detener Simulación";
+                btnStartSim.classList.add('running');
+            }
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         }
@@ -193,21 +197,32 @@ async function bootstrap() {
     const metricRes = document.getElementById('metric-res');
     const metricCap = document.getElementById('metric-cap');
     const btnStartSim = document.getElementById('btn-start-sim');
-    const simFolder = gui.addFolder('Observer Filter');
-    simFolder.add(config, 'capacity', 100, 10000, 100).listen();
-    simFolder.add(config, 'resolution', 0.01, 0.2, 0.01).listen();
-    
-    const waveFolder = gui.addFolder('Information Field');
-    waveFolder.add(config, 'frequency', 0.1, 5.0, 0.1).listen().onChange(applyWaves);
-    waveFolder.add(config, 'phase1', 0, Math.PI * 2, 0.1).name('Phase 1').listen().onChange(applyWaves);
-    waveFolder.add(config, 'phase2', 0, Math.PI * 2, 0.1).name('Phase 2').listen().onChange(applyWaves);
-    
-    const presetFolder = gui.addFolder('Presets (Entities)');
-    presetFolder.add(config, 'presetStableParticle').name('Stable Particle');
-    presetFolder.add(config, 'presetVacuum').name('Quantum Vacuum');
-    presetFolder.add(config, 'presetEdTech').name('Edu: Observer Effect');
 
-    // Init state
+    // Botón para cerrar ajustes directamente desde el panel
+    gui.add({
+        cerrarAjustes: () => {
+            guiEl.classList.remove('visible');
+            btnToggleGui?.classList.remove('active');
+            const label = btnToggleGui?.querySelector('.gui-btn-label');
+            if (label) label.textContent = 'AJUSTES';
+        }
+    }, 'cerrarAjustes').name('✕ CERRAR AJUSTES');
+
+    const simFolder = gui.addFolder('Filtro de Observador');
+    simFolder.add(config, 'capacity', 100, 10000, 100).name('Capacidad (Hilbert)').listen();
+    simFolder.add(config, 'resolution', 0.01, 0.2, 0.01).name('Resolución').listen();
+    
+    const waveFolder = gui.addFolder('Campo de Información');
+    waveFolder.add(config, 'frequency', 0.1, 5.0, 0.1).name('Frecuencia').listen().onChange(applyWaves);
+    waveFolder.add(config, 'phase1', 0, Math.PI * 2, 0.1).name('Fase 1 (X/Y)').listen().onChange(applyWaves);
+    waveFolder.add(config, 'phase2', 0, Math.PI * 2, 0.1).name('Fase 2 (Z)').listen().onChange(applyWaves);
+    
+    const presetFolder = gui.addFolder('Preajustes Cuánticos');
+    presetFolder.add(config, 'presetEdTech').name('Efecto Observador (10s/fase)');
+    presetFolder.add(config, 'presetStableParticle').name('Partícula Estable');
+    presetFolder.add(config, 'presetVacuum').name('Vacío Cuántico');
+
+    // Init state: activar ondas cuánticas de inmediato
     applyWaves();
 
     // ── Layout adaptativo, toggle de ajustes y plegado de panel ─────────────
@@ -231,20 +246,23 @@ async function bootstrap() {
         }
     });
 
-    // Botón para plegar/desplegar el panel de información en móvil
-    btnMinimizePanel?.addEventListener('click', () => {
+    // Botón y cabecera para plegar/desplegar el panel de información en móvil
+    const togglePanelCollapse = (e?: Event) => {
+        if (e) e.stopPropagation();
         const isCollapsed = infoPanelEl?.classList.toggle('collapsed');
         if (minimizeIcon) {
             minimizeIcon.textContent = isCollapsed ? '▼' : '▲';
         }
-    });
+    };
+    btnMinimizePanel?.addEventListener('click', togglePanelCollapse);
+    document.querySelector('.panel-title-group')?.addEventListener('click', togglePanelCollapse);
 
     function applyResponsiveLayout() {
         guiEl.style.display = ''; // Limpiar estilo inline para que mande la clase .visible
         if (isMobile()) {
-            universeGroup.position.y = -1.1; // Desplaza el holograma abajo para evitar solapamiento
-            targetCameraY = 1.0;
-            targetCameraZ = 7.2;
+            universeGroup.position.y = -0.4; // Holograma centrado armónicamente en el viewport móvil
+            targetCameraY = 0.8;
+            targetCameraZ = 6.6;
         } else {
             universeGroup.position.y = 0;
             targetCameraY = 2.0;
@@ -423,26 +441,24 @@ async function bootstrap() {
 
     let edTechTime = 0;
     let edTechStage = 0;
-    let isSimRunning = false;
+    let isSimRunning = true; // Simulación activa de inmediato al cargar
 
     if (btnStartSim) {
         btnStartSim.addEventListener('click', () => {
             if (!isSimRunning) {
-                isSimRunning = true;
-                edTechTime = 0;
-                edTechStage = 0;
-                btnStartSim.innerText = "⏹ Detener Simulación";
-                btnStartSim.classList.add('running');
                 config.presetEdTech();
             } else {
                 isSimRunning = false;
-                btnStartSim.innerText = "▶ Iniciar Simulación Educativa";
+                btnStartSim.innerText = "▶ Reanudar Simulación (30s)";
                 btnStartSim.classList.remove('running');
-                if (infoTitle) infoTitle.innerText = "Modo Libre";
-                if (infoDesc) infoDesc.innerText = "Simulación detenida. Ajusta los parámetros libremente.";
+                if (infoTitle) infoTitle.innerText = "Modo Libre (Pausa)";
+                if (infoDesc) infoDesc.innerText = "Simulación pausada. Puedes ajustar los parámetros cuánticos libremente.";
             }
         });
     }
+
+    // Iniciar de inmediato la simulación EdTech al cargar la página
+    config.presetEdTech();
 
 
 
@@ -583,16 +599,16 @@ async function bootstrap() {
             }
         }
 
-        // EdTech mode dynamic updating
+        // EdTech mode dynamic updating (10 segundos por fase, 30s en total)
         if (config.mode === 'edtech' && isSimRunning) {
             edTechTime += deltaTime;
             
-            // Stage 1: Probability Cloud (0s to 30s)
-            if (edTechTime < 30.0) {
+            // Fase 1: Nube de Probabilidad (0s a 10s)
+            if (edTechTime < 10.0) {
                 if (edTechStage !== 1) {
                     edTechStage = 1;
                     if (infoTitle) infoTitle.innerText = "Fase 1: Nube de Probabilidad";
-                    if (infoDesc) infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda.";
+                    if (infoDesc) infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda (0s - 10s).";
                     config.capacity = 100;
                     config.resolution = 0.01;
                     config.frequency = 1.5;
@@ -600,34 +616,36 @@ async function bootstrap() {
                     applyWaves();
                 }
             }
-            // Stage 2: Collapse (30s to 60s)
-            else if (edTechTime < 60.0) {
+            // Fase 2: Colapso por Medición (10s a 20s)
+            else if (edTechTime < 20.0) {
                 if (edTechStage !== 2) {
                     edTechStage = 2;
                     if (infoTitle) infoTitle.innerText = "Fase 2: Colapso por Medición";
-                    if (infoDesc) infoDesc.innerText = "Al observar e interactuar, la onda colapsa y define una posición.";
+                    if (infoDesc) infoDesc.innerText = "Al observar e interactuar, la función de onda colapsa y define una posición (10s - 20s).";
                     config.capacity = 4500;
                     config.resolution = 0.15;
                 }
             }
-            // Stage 3: Uncertainty (60s to 90s)
-            else if (edTechTime < 90.0) {
+            // Fase 3: Incertidumbre de Heisenberg (20s a 30s)
+            else if (edTechTime < 30.0) {
                 if (edTechStage !== 3) {
                     edTechStage = 3;
                     if (infoTitle) infoTitle.innerText = "Fase 3: Incertidumbre (Heisenberg)";
-                    if (infoDesc) infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento.";
+                    if (infoDesc) infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento y energía (20s - 30s).";
                     config.frequency = 3.5;
                     config.phase2 = Math.PI;
                     applyWaves();
                 }
             }
-            // Reset at 90s
+            // Fin de la simulación a los 30s
             else {
                 isSimRunning = false;
-                if (btnStartSim) btnStartSim.innerText = "↻ Reiniciar Simulación";
-                if (btnStartSim) btnStartSim.classList.remove('running');
+                if (btnStartSim) {
+                    btnStartSim.innerText = "↻ Reiniciar Simulación (30s)";
+                    btnStartSim.classList.remove('running');
+                }
                 if (infoTitle) infoTitle.innerText = "Simulación Completada";
-                if (infoDesc) infoDesc.innerText = "Has presenciado el efecto observador en un sistema cuántico simulado.";
+                if (infoDesc) infoDesc.innerText = "Has presenciado las 3 fases del efecto observador cuántico (10 segundos por fase).";
             }
             
             gui.controllersRecursive().forEach(c => c.updateDisplay());
