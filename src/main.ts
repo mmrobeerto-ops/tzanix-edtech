@@ -175,9 +175,11 @@ async function bootstrap() {
             edTechTime = 0;
             edTechStage = 0;
             if (btnStartSim) {
-                btnStartSim.innerText = "⏹ Detener Simulación";
+                btnStartSim.innerText = "⏸ Pausar Simulación";
                 btnStartSim.classList.add('running');
             }
+            if (simProgressBar) simProgressBar.style.width = '0%';
+            if (simTimerBadge) simTimerBadge.innerText = '⏱ 00:00 / 00:30 · Fase 1/3 (10s)';
             gui.controllersRecursive().forEach(c => c.updateDisplay());
             applyWaves();
         }
@@ -197,6 +199,8 @@ async function bootstrap() {
     const metricRes = document.getElementById('metric-res');
     const metricCap = document.getElementById('metric-cap');
     const btnStartSim = document.getElementById('btn-start-sim');
+    const simProgressBar = document.getElementById('sim-progress-bar');
+    const simTimerBadge = document.getElementById('sim-timer-badge');
 
     // Botón para cerrar ajustes directamente desde el panel
     gui.add({
@@ -211,16 +215,19 @@ async function bootstrap() {
     const simFolder = gui.addFolder('Filtro de Observador');
     simFolder.add(config, 'capacity', 100, 10000, 100).name('Capacidad (Hilbert)').listen();
     simFolder.add(config, 'resolution', 0.01, 0.2, 0.01).name('Resolución').listen();
+    simFolder.open(); // Abrir por defecto para que los ajustes salgan completos
     
     const waveFolder = gui.addFolder('Campo de Información');
     waveFolder.add(config, 'frequency', 0.1, 5.0, 0.1).name('Frecuencia').listen().onChange(applyWaves);
     waveFolder.add(config, 'phase1', 0, Math.PI * 2, 0.1).name('Fase 1 (X/Y)').listen().onChange(applyWaves);
     waveFolder.add(config, 'phase2', 0, Math.PI * 2, 0.1).name('Fase 2 (Z)').listen().onChange(applyWaves);
+    waveFolder.open(); // Abrir por defecto
     
     const presetFolder = gui.addFolder('Preajustes Cuánticos');
     presetFolder.add(config, 'presetEdTech').name('Efecto Observador (10s/fase)');
     presetFolder.add(config, 'presetStableParticle').name('Partícula Estable');
     presetFolder.add(config, 'presetVacuum').name('Vacío Cuántico');
+    presetFolder.open(); // Abrir por defecto
 
     // Init state: activar ondas cuánticas de inmediato
     applyWaves();
@@ -446,7 +453,13 @@ async function bootstrap() {
     if (btnStartSim) {
         btnStartSim.addEventListener('click', () => {
             if (!isSimRunning) {
-                config.presetEdTech();
+                if (edTechTime >= 30.0) {
+                    config.presetEdTech();
+                } else {
+                    isSimRunning = true;
+                    btnStartSim.innerText = "⏸ Pausar Simulación";
+                    btnStartSim.classList.add('running');
+                }
             } else {
                 isSimRunning = false;
                 btnStartSim.innerText = "▶ Reanudar Simulación (30s)";
@@ -602,44 +615,71 @@ async function bootstrap() {
         // EdTech mode dynamic updating (10 segundos por fase, 30s en total)
         if (config.mode === 'edtech' && isSimRunning) {
             edTechTime += deltaTime;
+
+            // Actualización fluida de la barra de progreso (0% a 100%)
+            const progress = Math.min(100, (edTechTime / 30.0) * 100);
+            if (simProgressBar) {
+                simProgressBar.style.width = `${progress}%`;
+            }
+
+            const currentSec = Math.floor(edTechTime);
+            const remainingPhase = Math.max(0, 10 - Math.floor(edTechTime % 10));
             
             // Fase 1: Nube de Probabilidad (0s a 10s)
             if (edTechTime < 10.0) {
                 if (edTechStage !== 1) {
                     edTechStage = 1;
-                    if (infoTitle) infoTitle.innerText = "Fase 1: Nube de Probabilidad";
-                    if (infoDesc) infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda (0s - 10s).";
+                    if (infoTitle) infoTitle.innerText = "Fase 1: Nube de Probabilidad (1/3)";
+                    if (infoDesc) infoDesc.innerText = "Sin un observador consciente, la partícula existe en múltiples estados a la vez como una onda continua.";
                     config.capacity = 100;
                     config.resolution = 0.01;
                     config.frequency = 1.5;
+                    config.phase1 = 0.0;
                     config.phase2 = 0.0;
                     applyWaves();
+                }
+                if (simTimerBadge) {
+                    simTimerBadge.innerText = `⏱ 00:${currentSec.toString().padStart(2, '0')} / 00:30 · Fase 1/3 (restan ${remainingPhase}s)`;
                 }
             }
             // Fase 2: Colapso por Medición (10s a 20s)
             else if (edTechTime < 20.0) {
                 if (edTechStage !== 2) {
                     edTechStage = 2;
-                    if (infoTitle) infoTitle.innerText = "Fase 2: Colapso por Medición";
-                    if (infoDesc) infoDesc.innerText = "Al observar e interactuar, la función de onda colapsa y define una posición (10s - 20s).";
+                    if (infoTitle) infoTitle.innerText = "Fase 2: Colapso por Medición (2/3)";
+                    if (infoDesc) infoDesc.innerText = "Al observar e interactuar, la función de onda colapsa y define una posición geométrica concentrada.";
                     config.capacity = 4500;
                     config.resolution = 0.15;
+                    config.frequency = 0.8;
+                    config.phase1 = 0.0;
+                    config.phase2 = 0.0;
+                    applyWaves();
+                }
+                if (simTimerBadge) {
+                    simTimerBadge.innerText = `⏱ 00:${currentSec.toString().padStart(2, '0')} / 00:30 · Fase 2/3 (restan ${remainingPhase}s)`;
                 }
             }
             // Fase 3: Incertidumbre de Heisenberg (20s a 30s)
             else if (edTechTime < 30.0) {
                 if (edTechStage !== 3) {
                     edTechStage = 3;
-                    if (infoTitle) infoTitle.innerText = "Fase 3: Incertidumbre (Heisenberg)";
-                    if (infoDesc) infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento y energía (20s - 30s).";
-                    config.frequency = 3.5;
+                    if (infoTitle) infoTitle.innerText = "Fase 3: Incertidumbre de Heisenberg (3/3)";
+                    if (infoDesc) infoDesc.innerText = "Medir exactamente el estado de la partícula altera su momento y energía con alta vibración cuántica.";
+                    config.capacity = 2500;
+                    config.resolution = 0.05;
+                    config.frequency = 3.8;
                     config.phase2 = Math.PI;
                     applyWaves();
+                }
+                if (simTimerBadge) {
+                    simTimerBadge.innerText = `⏱ 00:${currentSec.toString().padStart(2, '0')} / 00:30 · Fase 3/3 (restan ${remainingPhase}s)`;
                 }
             }
             // Fin de la simulación a los 30s
             else {
                 isSimRunning = false;
+                if (simProgressBar) simProgressBar.style.width = '100%';
+                if (simTimerBadge) simTimerBadge.innerText = '⏱ 00:30 / 00:30 · ¡Simulación Completada!';
                 if (btnStartSim) {
                     btnStartSim.innerText = "↻ Reiniciar Simulación (30s)";
                     btnStartSim.classList.remove('running');

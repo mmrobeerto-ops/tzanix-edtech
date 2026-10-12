@@ -56,6 +56,17 @@
             <span id="minimize-icon">▲</span>
           </button>
         </div>
+
+        <!-- Barra de progreso interactiva en tiempo real -->
+        <div class="sim-progress-container" id="sim-progress-container">
+          <div class="sim-progress-header">
+            <span id="sim-timer-badge" class="sim-timer-badge">⏱ 00:00 / 00:30 · Fase 1/3 (10s)</span>
+            <span class="sim-live-dot" title="Simulación en tiempo real">● EN VIVO</span>
+          </div>
+          <div class="sim-progress-track">
+            <div id="sim-progress-bar" class="sim-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
         
         <div class="panel-collapsible-body" id="panel-body">
           <div class="metrics">
@@ -73,7 +84,7 @@
             </div>
           </div>
 
-          <button id="btn-start-sim" class="btn-play running">⏹ Detener Simulación</button>
+          <button id="btn-start-sim" class="btn-play running">⏸ Pausar Simulación</button>
 
           <!-- Botones de Captura y Compartir dentro del panel de forma ordenada -->
           <div class="panel-actions">
