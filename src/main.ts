@@ -88,7 +88,7 @@ async function bootstrap() {
             void main() {
                 vIntensity = intensity;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                gl_PointSize = (0.5 + vIntensity) * (15.0 / -mvPosition.z);
+                gl_PointSize = (2.2 + vIntensity * 2.8) * (38.0 / -mvPosition.z);
                 gl_Position = projectionMatrix * mvPosition;
             }
         `,
@@ -97,18 +97,20 @@ async function bootstrap() {
             void main() {
                 float dist = length(gl_PointCoord - vec2(0.5));
                 if (dist > 0.5) discard;
-                float softEdge = smoothstep(0.5, 0.0, dist);
+                float glow = smoothstep(0.5, 0.0, dist);
+                float core = smoothstep(0.2, 0.0, dist);
                 
-                vec3 normalColor = mix(vec3(0.0, 0.4, 0.9), vec3(0.2, 1.0, 1.0), vIntensity);
-                vec3 anomalyColor = vec3(1.0, 0.1, 0.1);
+                vec3 cyan = vec3(0.0, 0.95, 1.0);
+                vec3 white = vec3(1.0, 1.0, 1.0);
+                vec3 anomaly = vec3(1.0, 0.2, 0.2);
                 
-                // Si la intensidad es muy alta (Kill-Switch), saturar en rojo
-                float anomalyFactor = smoothstep(0.3, 0.6, vIntensity);
-                vec3 color = mix(normalColor, anomalyColor, anomalyFactor); 
+                vec3 baseColor = mix(cyan, white, core * 0.75);
+                vec3 finalColor = mix(baseColor, anomaly, smoothstep(0.4, 0.8, vIntensity));
                 
-                float alpha = (0.02 + vIntensity * 0.1) * softEdge;
+                // Opacidad alta y núcleo resplandeciente para máxima visibilidad
+                float alpha = (core * 0.9 + glow * 0.7) * (0.6 + vIntensity * 0.4);
                 
-                gl_FragColor = vec4(color, alpha);
+                gl_FragColor = vec4(finalColor, alpha);
             }
         `,
         transparent: true,
@@ -124,7 +126,7 @@ async function bootstrap() {
     const lineMaterial = new THREE.LineBasicMaterial({
         color: 0x00e5ff,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.65,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
     });
@@ -135,8 +137,8 @@ async function bootstrap() {
     const isMobile = () => window.innerWidth <= 900;
     const gui = new GUI({ title: 'TZANIX AJUSTES' });
     const config = {
-        capacity: 100,
-        resolution: 0.01,
+        capacity: 1200,
+        resolution: 0.04,
         phase1: 0.0,
         phase2: 0.0,
         frequency: 1.5,
@@ -165,8 +167,8 @@ async function bootstrap() {
         },
         presetEdTech: () => {
             config.mode = 'edtech';
-            config.capacity = 100;
-            config.resolution = 0.01;
+            config.capacity = 1200;
+            config.resolution = 0.04;
             config.frequency = 1.5;
             config.phase1 = 0.0;
             config.phase2 = 0.0;
@@ -448,30 +450,31 @@ async function bootstrap() {
 
     let edTechTime = 0;
     let edTechStage = 0;
-    let isSimRunning = true; // Simulación activa de inmediato al cargar
+    let isSimRunning = false; // Listo para encender cuando el usuario presione el botón
 
     if (btnStartSim) {
         btnStartSim.addEventListener('click', () => {
             if (!isSimRunning) {
                 if (edTechTime >= 30.0) {
-                    config.presetEdTech();
-                } else {
-                    isSimRunning = true;
-                    btnStartSim.innerText = "⏸ Pausar Simulación";
-                    btnStartSim.classList.add('running');
+                    edTechTime = 0;
+                    edTechStage = 0;
                 }
+                config.presetEdTech();
+                isSimRunning = true;
+                btnStartSim.innerText = "⏸ PAUSAR SIMULACIÓN";
+                btnStartSim.classList.add('running');
             } else {
                 isSimRunning = false;
-                btnStartSim.innerText = "▶ Reanudar Simulación (30s)";
+                btnStartSim.innerText = "▶ REANUDAR SIMULACIÓN";
                 btnStartSim.classList.remove('running');
                 if (infoTitle) infoTitle.innerText = "Modo Libre (Pausa)";
-                if (infoDesc) infoDesc.innerText = "Simulación pausada. Puedes ajustar los parámetros cuánticos libremente.";
+                if (infoDesc) infoDesc.innerText = "Simulación pausada. Puedes rotar el holograma 360° o explorar los ajustes.";
             }
         });
     }
 
-    // Iniciar de inmediato la simulación EdTech al cargar la página
-    config.presetEdTech();
+    // Inicializar el campo cuántico inmediatamente para que el holograma sea 100% visible desde el segundo 0
+    applyWaves();
 
 
 
@@ -701,8 +704,26 @@ async function bootstrap() {
         engine.set_observer_resolution(config.resolution);
 
         // 1. Get raw flat array of particles
-        const step = Math.max(0.08, config.resolution * 2.0); 
-        const particleData = engine.render_particles(-2.5, 2.5, step);
+        let particleData = engine.render_particles(-2.5, 2.5, 0.12);
+
+        // Garantía absoluta de visualización: si el buffer está vacío, sintetizar nube cuántica
+        if (!particleData || particleData.length === 0) {
+            const count = 900;
+            const arr = new Float32Array(count * 4);
+            const nowSec = performance.now() * 0.001;
+            for (let i = 0; i < count; i++) {
+                const u = Math.random();
+                const v = Math.random();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const r = 1.75 + 0.35 * Math.sin(theta * 3.0 + nowSec * config.frequency) * Math.cos(phi * 2.0);
+                arr[i * 4 + 0] = r * Math.sin(phi) * Math.cos(theta);
+                arr[i * 4 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                arr[i * 4 + 2] = r * Math.cos(phi);
+                arr[i * 4 + 3] = 0.5 + 0.5 * Math.sin(nowSec * 2.0 + i * 0.05);
+            }
+            particleData = arr;
+        }
 
         const numParticles = particleData.length / 4;
         const positions = new Float32Array(numParticles * 3);

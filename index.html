@@ -37,12 +37,6 @@
             <span class="logo-edtech">EDTECH</span>
           </h1>
         </div>
-
-        <!-- Botón para abrir / cerrar panel de controles y parámetros -->
-        <button id="btn-toggle-gui" class="glass-btn btn-gui-toggle" title="Abrir / cerrar controles de parámetros cuánticos" aria-label="Ajustes de parámetros">
-          <span class="gui-btn-icon">⚙️</span>
-          <span class="gui-btn-label">AJUSTES</span>
-        </button>
       </header>
 
       <main class="info-panel" id="info-panel">
@@ -84,7 +78,7 @@
             </div>
           </div>
 
-          <button id="btn-start-sim" class="btn-play running">⏸ Pausar Simulación</button>
+          <button id="btn-start-sim" class="btn-play-power">⚡ ENCENDER SIMULACIÓN (30s)</button>
 
           <!-- Botones de Captura y Compartir dentro del panel de forma ordenada -->
           <div class="panel-actions">
@@ -98,6 +92,12 @@
         </div>
       </main>
 
+      <!-- Botón Flotante de Ajustes (reubicado a la esquina inferior derecha) -->
+      <button id="btn-toggle-gui" class="fab-ajustes" title="Ajustes de parámetros cuánticos" aria-label="Ajustes de parámetros">
+        <span class="gui-btn-icon">⚙️</span>
+        <span class="gui-btn-label">AJUSTES</span>
+      </button>
+
       <!-- ① GANCHO VISUAL: hint que desaparece al primer toque -->
       <div id="touch-hint" aria-hidden="true">
         <div class="hint-inner">
@@ -109,8 +109,6 @@
 
       <!-- ③ TOOLTIP DIDÁCTICO flotante -->
       <div id="param-tooltip" class="param-tooltip" aria-live="polite"></div>
-
-
     </div>
 
     <script type="module" src="/src/main.ts"></script>
