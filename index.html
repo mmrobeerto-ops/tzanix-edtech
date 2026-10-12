@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Tzanix Quantum Engine</title>
     <!-- Google Fonts for Brutalist/Technical Aesthetic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,37 +37,53 @@
             <span class="logo-edtech">EDTECH</span>
           </h1>
         </div>
+
+        <!-- Botón para abrir / cerrar panel de controles y parámetros -->
+        <button id="btn-toggle-gui" class="glass-btn btn-gui-toggle" title="Abrir / cerrar controles de parámetros cuánticos" aria-label="Ajustes de parámetros">
+          <span class="gui-btn-icon">⚙️</span>
+          <span class="gui-btn-label">AJUSTES</span>
+        </button>
       </header>
 
       <main class="info-panel" id="info-panel">
-        <h2 id="info-title">Inicializando...</h2>
-        <p id="info-desc">Cargando motor cuántico y conectando a WebAssembly.</p>
-        
-        <div class="metrics">
-          <div class="metric">
-            <span class="label">Frecuencia de Onda</span>
-            <span class="value" id="metric-freq">0.00 Hz</span>
+        <div class="panel-header-row">
+          <div class="panel-title-group">
+            <h2 id="info-title">Inicializando...</h2>
+            <p id="info-desc">Cargando motor cuántico y conectando a WebAssembly.</p>
           </div>
-          <div class="metric">
-            <span class="label">Resolución</span>
-            <span class="value" id="metric-res">0.00</span>
-          </div>
-          <div class="metric">
-            <span class="label">Capacidad</span>
-            <span class="value" id="metric-cap">0</span>
-          </div>
+          <!-- Botón para plegar / desplegar información en móviles y pantallas pequeñas -->
+          <button id="btn-minimize-panel" class="panel-minimize-btn" title="Plegar / desplegar panel" aria-label="Plegar panel">
+            <span id="minimize-icon">▲</span>
+          </button>
         </div>
+        
+        <div class="panel-collapsible-body" id="panel-body">
+          <div class="metrics">
+            <div class="metric">
+              <span class="label">Frecuencia de Onda</span>
+              <span class="value" id="metric-freq">0.00 Hz</span>
+            </div>
+            <div class="metric">
+              <span class="label">Resolución</span>
+              <span class="value" id="metric-res">0.00</span>
+            </div>
+            <div class="metric">
+              <span class="label">Capacidad</span>
+              <span class="value" id="metric-cap">0</span>
+            </div>
+          </div>
 
-        <button id="btn-start-sim" class="btn-play">▶ Iniciar Simulación Educativa</button>
+          <button id="btn-start-sim" class="btn-play">▶ Iniciar Simulación Educativa</button>
 
-        <!-- ② Botones de Compartir — dentro del panel, sin superposición -->
-        <div class="panel-actions">
-          <button id="btn-screenshot" class="share-btn" title="Captura el holograma en alta resolución">
-            <span>📸</span><span class="share-label">CAPTURAR</span>
-          </button>
-          <button id="btn-share" class="share-btn" title="Copia un enlace con los parámetros actuales para compartir">
-            <span>🔗</span><span class="share-label">COMPARTIR</span>
-          </button>
+          <!-- ② Botones de Compartir — dentro del panel -->
+          <div class="panel-actions">
+            <button id="btn-screenshot" class="share-btn" title="Captura el holograma en alta resolución">
+              <span>📸</span><span class="share-label">CAPTURAR</span>
+            </button>
+            <button id="btn-share" class="share-btn" title="Copia un enlace con los parámetros actuales para compartir">
+              <span>🔗</span><span class="share-label">COMPARTIR</span>
+            </button>
+          </div>
         </div>
       </main>
 

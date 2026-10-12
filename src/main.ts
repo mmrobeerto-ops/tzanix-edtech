@@ -210,24 +210,49 @@ async function bootstrap() {
     // Init state
     applyWaves();
 
-    // ── Mobile: hide lil-gui panel on small screens ──────────────────────────
+    // ── Layout adaptativo, toggle de ajustes y plegado de panel ─────────────
     const guiEl = gui.domElement as HTMLElement;
-    const bottomBar = document.querySelector('.bottom-bar') as HTMLElement | null;
+    const btnToggleGui = document.getElementById('btn-toggle-gui');
+    const infoPanelEl = document.getElementById('info-panel');
+    const btnMinimizePanel = document.getElementById('btn-minimize-panel');
+    const minimizeIcon = document.getElementById('minimize-icon');
 
-    function applyMobileLayout() {
-        if (isMobile()) {
-            // On mobile: force hide GUI, hide bottom bar button
-            guiEl.style.display = 'none';
-            guiEl.classList.remove('visible');
-            if (bottomBar) bottomBar.style.display = 'none';
+    // Botón para abrir/cerrar ajustes en móvil y desktop
+    btnToggleGui?.addEventListener('click', () => {
+        const isOpen = guiEl.classList.toggle('visible');
+        if (isOpen) {
+            btnToggleGui.classList.add('active');
+            const label = btnToggleGui.querySelector('.gui-btn-label');
+            if (label) label.textContent = 'CERRAR ✕';
         } else {
-            // On desktop: clear inline style so CSS class controls visibility
-            guiEl.style.display = '';
-            if (bottomBar) bottomBar.style.display = 'flex';
+            btnToggleGui.classList.remove('active');
+            const label = btnToggleGui.querySelector('.gui-btn-label');
+            if (label) label.textContent = 'AJUSTES';
+        }
+    });
+
+    // Botón para plegar/desplegar el panel de información en móvil
+    btnMinimizePanel?.addEventListener('click', () => {
+        const isCollapsed = infoPanelEl?.classList.toggle('collapsed');
+        if (minimizeIcon) {
+            minimizeIcon.textContent = isCollapsed ? '▼' : '▲';
+        }
+    });
+
+    function applyResponsiveLayout() {
+        guiEl.style.display = ''; // Limpiar estilo inline para que mande la clase .visible
+        if (isMobile()) {
+            universeGroup.position.y = -1.1; // Desplaza el holograma abajo para evitar solapamiento
+            targetCameraY = 1.0;
+            targetCameraZ = 7.2;
+        } else {
+            universeGroup.position.y = 0;
+            targetCameraY = 2.0;
+            targetCameraZ = 6.0;
         }
     }
-    applyMobileLayout();
-    window.addEventListener('resize', applyMobileLayout);
+    applyResponsiveLayout();
+    window.addEventListener('resize', applyResponsiveLayout);
 
     // ══════════════════════════════════════════════════════════════════════════
     // CONTROLADOR DE INTERACCIÓN 3D (Táctil, Ratón, Giro 360°, Inercia y Zoom)

@@ -1,5 +1,16 @@
 {
   "buildCommand": "npx vite build",
   "outputDirectory": "dist",
-  "framework": null
+  "framework": null,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
 }
