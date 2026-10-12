@@ -88,7 +88,7 @@ async function bootstrap() {
             void main() {
                 vIntensity = intensity;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                gl_PointSize = (0.8 + vIntensity * 1.6) * (20.0 / -mvPosition.z);
+                gl_PointSize = (1.0 + min(vIntensity, 3.5) * 0.8) * (20.0 / -mvPosition.z);
                 gl_Position = projectionMatrix * mvPosition;
             }
         `,
@@ -100,16 +100,24 @@ async function bootstrap() {
                 float softEdge = smoothstep(0.5, 0.0, dist);
                 float core = smoothstep(0.2, 0.0, dist);
                 
-                vec3 cyan = vec3(0.0, 0.95, 1.0);
+                // Paleta: azul profundo, cyan cuántico y rojo de anomalía/alta energía
                 vec3 deepBlue = vec3(0.0, 0.35, 0.95);
+                vec3 cyan = vec3(0.0, 0.95, 1.0);
+                vec3 anomalyRed = vec3(1.0, 0.08, 0.18);
                 vec3 white = vec3(1.0, 1.0, 1.0);
                 
-                vec3 color = mix(deepBlue, cyan, vIntensity);
-                color = mix(color, white, core * 0.7);
+                // Normalizar intensidad del motor cuántico (~1.0 a ~3.2)
+                float normI = clamp((vIntensity - 1.0) / 2.2, 0.0, 1.0);
+                vec3 baseColor = mix(deepBlue, cyan, normI);
                 
-                float alpha = (core * 0.8 + softEdge * 0.4) * (0.35 + vIntensity * 0.65);
+                // Efecto rojo en nodos de alta intensidad, resonancia e interferencia constructiva
+                float redFactor = smoothstep(0.55, 0.88, normI);
+                vec3 finalColor = mix(baseColor, anomalyRed, redFactor);
+                finalColor = mix(finalColor, white, core * 0.4);
                 
-                gl_FragColor = vec4(color, alpha);
+                float alpha = (core * 0.75 + softEdge * 0.45) * (0.4 + normI * 0.6);
+                
+                gl_FragColor = vec4(finalColor, alpha);
             }
         `,
         transparent: true,
