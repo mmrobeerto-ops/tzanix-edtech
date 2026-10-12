@@ -193,17 +193,6 @@ async function bootstrap() {
     const metricRes = document.getElementById('metric-res');
     const metricCap = document.getElementById('metric-cap');
     const btnStartSim = document.getElementById('btn-start-sim');
-    
-    // Parallax state
-    let targetCameraX = 0;
-    let targetCameraY = 2;
-    document.addEventListener('mousemove', (e) => {
-        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-        const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        targetCameraX = mouseX * 2.0;
-        targetCameraY = 2.0 + mouseY * 1.5;
-    });
-
     const simFolder = gui.addFolder('Observer Filter');
     simFolder.add(config, 'capacity', 100, 10000, 100).listen();
     simFolder.add(config, 'resolution', 0.01, 0.2, 0.01).listen();
@@ -240,13 +229,154 @@ async function bootstrap() {
     applyMobileLayout();
     window.addEventListener('resize', applyMobileLayout);
 
-    // ── Touch parallax (replace mousemove for mobile) ────────────────────────
-    document.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        const mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
-        const mouseY = -(touch.clientY / window.innerHeight) * 2 + 1;
-        targetCameraX = mouseX * 2.0;
-        targetCameraY = 2.0 + mouseY * 1.5;
+    // ══════════════════════════════════════════════════════════════════════════
+    // CONTROLADOR DE INTERACCIÓN 3D (Táctil, Ratón, Giro 360°, Inercia y Zoom)
+    // ══════════════════════════════════════════════════════════════════════════
+    let isDragging = false;
+    let prevPointerX = 0;
+    let prevPointerY = 0;
+    let velRotationX = 0;
+    let velRotationY = 0;
+    let targetCameraZ = isMobile() ? 7.0 : 6.0;
+    let targetCameraX = 0;
+    let targetCameraY = 2.0;
+    let initialPinchDist = 0;
+    let lastUserInteractionTime = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // Helper: comprobar si el toque o clic fue sobre un control interactivo de la UI
+    const isUIElement = (target: EventTarget | null) => {
+        if (!target || !(target instanceof HTMLElement)) return false;
+        return !!target.closest('#info-panel, .top-bar, .lil-gui, button, a, input, select');
+    };
+
+    const touchHint = document.getElementById('touch-hint');
+    function dismissHint() {
+        if (touchHint && !touchHint.classList.contains('hidden')) {
+            touchHint.classList.add('hidden');
+            setTimeout(() => touchHint.remove(), 700);
+        }
+    }
+    setTimeout(dismissHint, 6000);
+
+    // 1. Ratón (Desktop)
+    window.addEventListener('mousedown', (e) => {
+        if (isUIElement(e.target)) return;
+        isDragging = true;
+        prevPointerX = e.clientX;
+        prevPointerY = e.clientY;
+        velRotationX = 0;
+        velRotationY = 0;
+        lastUserInteractionTime = performance.now();
+        dismissHint();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const deltaX = e.clientX - prevPointerX;
+            const deltaY = e.clientY - prevPointerY;
+            prevPointerX = e.clientX;
+            prevPointerY = e.clientY;
+
+            universeGroup.rotation.y += deltaX * 0.007;
+            universeGroup.rotation.x += deltaY * 0.007;
+
+            velRotationY = deltaX * 0.007;
+            velRotationX = deltaY * 0.007;
+            lastUserInteractionTime = performance.now();
+        } else {
+            // Parallax sutil cuando se mueve el ratón sin hacer clic
+            const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            targetCameraX = mouseX * 1.5;
+            targetCameraY = 2.0 + mouseY * 1.0;
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // 2. Táctil (Móviles y Tablets)
+    window.addEventListener('touchstart', (e: TouchEvent) => {
+        if (isUIElement(e.target)) return;
+
+        if (e.touches.length === 1) {
+            isDragging = true;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            prevPointerX = touchStartX;
+            prevPointerY = touchStartY;
+            velRotationX = 0;
+            velRotationY = 0;
+            lastUserInteractionTime = performance.now();
+            dismissHint();
+        } else if (e.touches.length === 2) {
+            // Preparar zoom con pellizco
+            isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            initialPinchDist = Math.hypot(dx, dy);
+            dismissHint();
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e: TouchEvent) => {
+        if (isUIElement(e.target)) return;
+
+        if (e.touches.length === 1 && isDragging) {
+            if (e.cancelable) e.preventDefault(); // Evitar scroll o pull del navegador
+            const curX = e.touches[0].clientX;
+            const curY = e.touches[0].clientY;
+            const deltaX = curX - prevPointerX;
+            const deltaY = curY - prevPointerY;
+            prevPointerX = curX;
+            prevPointerY = curY;
+
+            universeGroup.rotation.y += deltaX * 0.008;
+            universeGroup.rotation.x += deltaY * 0.008;
+
+            velRotationY = deltaX * 0.008;
+            velRotationX = deltaY * 0.008;
+            lastUserInteractionTime = performance.now();
+        } else if (e.touches.length === 2) {
+            if (e.cancelable) e.preventDefault(); // Zoom con 2 dedos
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.hypot(dx, dy);
+
+            if (initialPinchDist > 0) {
+                const diff = dist - initialPinchDist;
+                targetCameraZ -= diff * 0.015;
+                targetCameraZ = Math.max(2.5, Math.min(12.0, targetCameraZ));
+            }
+            initialPinchDist = dist;
+            lastUserInteractionTime = performance.now();
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchend', (e: TouchEvent) => {
+        if (isDragging && e.changedTouches.length > 0 && !isUIElement(e.target)) {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const moveDist = Math.hypot(endX - touchStartX, endY - touchStartY);
+
+            // Toque rápido (tap sin arrastre) = Colapso de onda interactivo
+            if (moveDist < 12) {
+                const normX = (endX / window.innerWidth) * 2 - 1;
+                engine.add_wave(config.frequency * 1.5, config.frequency * 1.2, config.frequency, 1.2, normX * Math.PI);
+            }
+        }
+        isDragging = false;
+        initialPinchDist = 0;
+    });
+
+    // 3. Zoom con rueda del ratón (Desktop)
+    window.addEventListener('wheel', (e: WheelEvent) => {
+        if (isUIElement(e.target)) return;
+        targetCameraZ += e.deltaY * 0.005;
+        targetCameraZ = Math.max(2.5, Math.min(12.0, targetCameraZ));
     }, { passive: true });
 
     // ── Bottom-bar toggle: properly show/hide the GUI panel ──────────────────
@@ -290,20 +420,7 @@ async function bootstrap() {
     }
 
 
-    // ════════════════════════════════════════════════════
-    // ① GANCHO VISUAL — dismiss hint on first interaction
-    // ════════════════════════════════════════════════════
-    const touchHint = document.getElementById('touch-hint');
-    function dismissHint() {
-        if (touchHint && !touchHint.classList.contains('hidden')) {
-            touchHint.classList.add('hidden');
-            // fully remove after transition
-            setTimeout(() => touchHint.remove(), 700);
-        }
-    }
-    // Auto-dismiss after 6s or on first touch/click
-    setTimeout(dismissHint, 6000);
-    document.addEventListener('pointerdown', dismissHint, { once: true });
+
 
     // Load params from URL hash on startup (for shared links)
     const urlHash = new URLSearchParams(window.location.hash.replace('#', ''));
@@ -409,7 +526,8 @@ async function bootstrap() {
 
         requestAnimationFrame(animate);
         
-        // Camera parallax
+        // Suavizado de zoom y posición de cámara
+        camera.position.z += (targetCameraZ - camera.position.z) * 0.1;
         camera.position.x += (targetCameraX - camera.position.x) * 0.05;
         camera.position.y += (targetCameraY - camera.position.y) * 0.05;
         camera.lookAt(0, 0, 0);
@@ -532,9 +650,19 @@ async function bootstrap() {
         }
         lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
 
-        // Rotate scene
-        universeGroup.rotation.y += config.rotationSpeed;
-        universeGroup.rotation.x += config.rotationSpeed * 0.5;
+        // Inercia de rotación del holograma y rotación pasiva sutil
+        if (!isDragging) {
+            universeGroup.rotation.y += velRotationY;
+            universeGroup.rotation.x += velRotationX;
+            velRotationY *= 0.92; // Fricción suave
+            velRotationX *= 0.92;
+
+            // Retomar suave rotación cósmica si el usuario no ha tocado la pantalla en 1.5s
+            if (performance.now() - lastUserInteractionTime > 1500) {
+                universeGroup.rotation.y += config.rotationSpeed * 0.7;
+                universeGroup.rotation.x += config.rotationSpeed * 0.3;
+            }
+        }
 
         renderer.render(scene, camera);
     }
